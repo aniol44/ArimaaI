@@ -63,12 +63,22 @@
 concat([],L,L).
 concat([T|Q],L,[T|R]):- concat(Q,L,R).
 
+%element du poly
+element(X, [X|_]).
+element(X, [T|Q]):- element(X,Q).
+%element([4,4,rabbit,silver], [[4,4,rabbit,silver],[5,4,dog,gold]]).
 
 
+%pion_freeze(Board,Pion) --> indique si un pion est freeze (ne peut rien faire).
 
+pion_freeze(Board, [X,Y,TypeAllie,silver]):- voisins(Board, (X,Y), Res), element([_,_,TypeEnnemi,gold], Res), plus_fort(TypeEnnemi, TypeAllie), \+element([_,_,Type,silver], Res).
+pion_freeze(Board, [X,Y,TypeAllie,gold]):- voisins(Board, (X,Y), Res), element([_,_,TypeEnnemi,silver], Res), plus_fort(TypeEnnemi, TypeAllie), \+element([_,_,Type,silver], Res).
 
-
-
+%EXEMPLE EXECUTION: 
+%pion_freeze([[4,4,rabbit,silver],[5,4,dog,gold]], [4,4,rabbit,silver] ).
+%pion_freeze([[4,4,camel,silver],[5,4,dog,gold]], [4,4,camel,silver] ).
+%pion_freeze([[4,4,camel,silver],[5,4,dog,gold],[3,4,elephant,gold]], [4,4,camel,silver] ).
+%pion_freeze([[4,4,rabbit,silver],[3,4,rabbit,silver],[5,4,dog,gold]], [4,4,rabbit,silver]).
 
 %tout_deplacement_possible_silver(Board, TempBoard, Res) --> Res s unifie avec une liste de tous les deplacements possibles du joueur silver avec une profondeur de 1.
 %Pour cela on utilise le prédicat deplacement_possible qui test si un deplacement est possible, et ce prédicat est combiné avec un setof.
