@@ -1,6 +1,6 @@
-%:- module(bot,
-%      [  get_moves/3
-%      ]).
+:- module(bot,
+      [  get_moves/3
+      ]).
 	
 % A few comments but all is explained in README of github
 
@@ -15,9 +15,9 @@
 % get_moves(Moves, [silver, []], [[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]]).
 
 % default call
-%get_moves([[[1,0],[2,0]],[[0,0],[1,0]],[[0,1],[0,0]],[[0,0],[0,1]]], Gamestate, Board).
+get_moves([[[1,0],[2,0]],[[0,0],[1,0]],[[0,1],[0,0]],[[0,0],[0,1]]], Gamestate, Board).
 
-%get_moves(Moves, Gamestate, Board):- 
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %					REMARQUE (POUR DEBUG):													%
@@ -51,7 +51,7 @@
 
 
 
-%Test : Un test pour voir si get_moves marche (envoie juste à l'application les 4 premiers mouvements déterminés, risque de conflits et bug) 
+%Test : Un test pour voir si get_moves marche (envoie juste à l application les 4 premiers mouvements déterminés, risque de conflits et bug) 
 %get_moves(Moves, Gamestate, Board):- tout_deplacement_possible_silver(Board, Board, Res), concat([[[A,B],[C,D]],[[E,F],[G,H]],[[I,J],[K,L]],[[M,N],[O,P]]],Q,Res), Moves = [[[A,B],[C,D]],[[E,F],[G,H]],[[I,J],[K,L]],[[M,N],[O,P]]].
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -109,7 +109,7 @@ deplacement_possible(Board, [[X,Y],[X,Z]] ):- get_case(Board, (X,Y), [X,Y,C,D]),
 
 %pousser_possible(Board, PousserEnnemi) -> PousserEnnemi de la forme : [[[[XennemiDepart,YennemiDepart],[XennemiArrive,YennemiArrive]]],[[XallieDepart,YallieDepart],[XallieArrive,YallieArrive]]]
 %Comme pour deplacement_possible, permet de tester si un pion allie peut pousser un pion ennemi.
-% pas de cut pour pouvoir determiner les possibilités de l'action pousser par un pion avec un setof
+% pas de cut pour pouvoir determiner les possibilités de l action pousser par un pion avec un setof
 
 pousser_possible(Board, [[[Xennemi,Yennemi],[Zennemi,Yennemi]],[[Xallie,Yallie],[Xennemi,Yennemi]]]):- Zennemi is Xennemi+1, get_case(Board,(Xallie,Yallie), [Xallie,Yallie,TypeAllie,JoueurAllie]), TypeAllie \= -1, JoueurAllie \= -1, get_case(Board, (Xennemi,Yennemi), [Xennemi,Yennemi,TypeEnnemi,JoueurEnnemi]), TypeEnnemi \= -1, JoueurEnnemi \= -1, plus_fort(TypeAllie,TypeEnnemi), voisinB(Board,(Xennemi,Yennemi),[Zennemi,Yennemi,A,B]), A = -1, B = -1. 
 pousser_possible(Board, [[[Xennemi,Yennemi],[Zennemi,Yennemi]],[[Xallie,Yallie],[Xennemi,Yennemi]]]):- Zennemi is Xennemi-1, get_case(Board,(Xallie,Yallie), [Xallie,Yallie,TypeAllie,JoueurAllie]), TypeAllie \= -1, JoueurAllie \= -1, get_case(Board, (Xennemi,Yennemi), [Xennemi,Yennemi,TypeEnnemi,JoueurEnnemi]), TypeEnnemi \= -1, JoueurEnnemi \= -1, plus_fort(TypeAllie,TypeEnnemi), voisinH(Board,(Xennemi,Yennemi),[Zennemi,Yennemi,A,B]), A = -1, B = -1. 
@@ -225,3 +225,5 @@ plus_fort(elephant,dog).
 plus_fort(camel,horse).
 plus_fort(elephant,horse).
 plus_fort(elephant,camel).
+
+%boucle principal de jeux
