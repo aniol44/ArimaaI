@@ -132,6 +132,7 @@ deplacement([A|E], [A|R], (LigneD,ColonneD), (LigneA, ColonneA) ):- deplacement(
 %EXEMPLE EXECUTION :
 %deplacement([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]], Res, (1,1), (2,1)).
 
+
 %suppression d un pion du plateau lorsqu il est mangé.
 %PROTOTYPE : delete_pion(pion,board,R).
 %EXECUTION : delete_pion([0,0,rabbit,silver],[[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],R).
@@ -139,3 +140,18 @@ deplacement([A|E], [A|R], (LigneD,ColonneD), (LigneA, ColonneA) ):- deplacement(
 delete_pion(_,[],_).
 delete_pion(X,[X|Q],R):- concat(_,Q,R),!.
 delete_pion(X,[T|Q],[T|R]):-delete_pion(X,Q,R).
+
+%liste des pions jouables ainsi que chaque coup possible. RETOURNE UNE LISTE À 2 ÉLÉMENTS : 1- la tête est un pion, 2- la queue est une liste de coups possibles pour ce pion.
+%RESULTAT exemple : R = [[[1, 0, camel, silver], [[2, 0]]], [[1, 1, cat, silver], [[2, 1]]], [[1, 2, rabbit, silver], [[2, 2]]], [[1, 3, dog, silver], [[2, 3]]], [[1, 4, rabbit|...], [[2|...]]], [[1, 5|...], [[...|...]]], [[1|...], [...]], [[...|...]|...], [...|...]|...].
+%PROTOTYPE : liste_coup(Board,BoardTemp,R).
+%EXECUTION :liste_coup([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],[[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],R).
+
+liste_coup(_,[],[]).
+liste_coup(Board,[[X,Y,_,_]|Q],R):- \+setof([X1,Y1],deplacement_possible(Board,[[X,Y],[X1,Y1]]),_),liste_coup(Board,Q,R),!.
+liste_coup(Board,[[X,Y,T,J]|Q],R):- setof([X1,Y1],deplacement_possible(Board,[[X,Y],[X1,Y1]]),Res),concat([[[X,Y,T,J],Res]],R1,R),liste_coup(Board,Q,R1).
+
+%mise à jour du board après avoir déplacé un pion. 
+%PROTOTYPE : maj_board(Board,P,X,Y,R). p est un pion avant de délplacement, X et Y sont les nouvelles coordonnées de ce pion et R est la nouvelle board mise à jour.
+%EXECUTION : maj_board([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],[0,0,rabbit,silver],1,1,R).
+
+maj_board(Board,[X1,Y1,T,J],X,Y,R):- delete_pion([X1,Y1,T,J],Board,R1),concat([[X,Y,T,J]],R1,R).
