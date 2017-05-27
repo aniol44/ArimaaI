@@ -44,7 +44,7 @@
 %		ZONE VIDE (pas de pion) DU PLATEAU:
 %				[X,Y,-1,-1] --> [5,5,-1,-1] 
 %		POUSSER :
-%				[[[[XennemiDepart,YennemiDepart],[XennemiArrive,YennemiArrive]]],[[XallieDepart,YallieDepart],[XallieArrive,YallieArrive]]]
+%				[[[XennemiDepart,YennemiDepart],[XennemiArrive,YennemiArrive]],[[XallieDepart,YallieDepart],[XallieArrive,YallieArrive]]]
 %		TIRER :
 %				[[[XallieDepart,YallieDepart],[XallieArrive,YallieArrive]],[[[XennemiDepart,YennemiDepart],[XennemiArrive,YennemiArrive]]]]			
 %
@@ -86,20 +86,30 @@ pion_freeze(Board, [X,Y,TypeAllie,gold]):- voisins(Board, (X,Y), Res), element([
 %Board corresponds au plateau et ne sera pas modifié, TempBoard est une copie de Board qui permet un parcours un à un de chaque pion du plateau.
 
 tout_deplacement_possible_silver(_, [], []).
-tout_deplacement_possible_silver(Board, [[X,Y,_,silver]|B], Res):- setof([[X,Y],[V,W]],deplacement_possible(Board, [[X,Y],[V,W]]), TmpRes), tout_deplacement_possible_silver(Board,B,TRes), concat(TmpRes,TRes,Res), !.
+tout_deplacement_possible_silver(Board, [[X,Y,_,silver]|B], Res):- setof([[X,Y],[V,W]],deplacement_possible_silver(Board, [[X,Y],[V,W]]), TmpRes), tout_deplacement_possible_silver(Board,B,TRes), concat(TmpRes,TRes,Res), !.
 tout_deplacement_possible_silver(Board, [[_,_,_,_]|B], Res):- tout_deplacement_possible_silver(Board, B, Res). 
 
 %EXEMPLE EXECUTION :
 %tout_deplacement_possible_silver([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]], [[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],Res).
 
-%deplacement_possible(Board, Deplacement ) --> renvoie vrai si le deplacement du pion d une case à une autre case voisine (précisée) est possible sinon renvoie faux (la profondeur du deplacement est de 1 case).
+
+%pion_deplacement_possible_silver(_silverBoard, Pion, Resultat)--> pour un pion donné unifie Resultat avec tous ses deplacements possibles.
+pion_deplacement_possible_silver(Board, [Xdepart,Ydepart,_,_], Res):- setof([[Xdepart,Ydepart],[Xarrive,Yarrive]], deplacement_possible_silver(Board,[[Xdepart,Ydepart],[Xarrive,Yarrive]]), Res).
+
+%EXEMPLE EXECUTION :
+%pion_deplacement_possible_silver([[4,7,cat,silver],[5,7,rabbit,silver]],[4,7,cat,silver], Res ).
+%pion_deplacement_possible_silver([[4,7,rabbit,silver],[5,7,rabbit,silver]],[4,7,rabbit,silver], Res ).
+
+
+
+%deplacement_possible_silver(Board, Deplacement ) --> renvoie vrai si le deplacement du pion d une case à une autre case voisine (précisée) est possible sinon renvoie faux (la profondeur du deplacement est de 1 case).
 %Pour l instant pas de cut (!), Peut renvoyer tout les déplacements par exemple on appel sur deplacement(Board, [[5,5], [X,Y]]. A voir après avec l utilisation de Setof (+ retract et asserta).
 %deplacement_possible(board, [[Xdepart,YDepart], [Xarrive,Yarrive]) :- On test si la case depart est bien un pion, puis On test si la case arrivée est -1 -1.
 
-deplacement_possible(Board, [[X,Y],[Z,Y]] ):- get_case(Board, (X,Y), [X,Y,C,D]), C \= -1, D \= -1, Z is X+1, voisinB(Board,(X,Y),[Z,Y,A,B]), A = -1, B = -1.
-deplacement_possible(Board, [[X,Y],[Z,Y]] ):- get_case(Board, (X,Y), [X,Y,C,D]), C \= -1, D \= -1, Z is X-1, voisinH(Board,(X,Y),[Z,Y,A,B]), A = -1, B = -1.
-deplacement_possible(Board, [[X,Y],[X,Z]] ):- get_case(Board, (X,Y), [X,Y,C,D]), C \= -1, D \= -1, Z is Y+1, voisinD(Board,(X,Y),[X,Z,A,B]), A = -1, B = -1.
-deplacement_possible(Board, [[X,Y],[X,Z]] ):- get_case(Board, (X,Y), [X,Y,C,D]), C \= -1, D \= -1, Z is Y-1, voisinG(Board,(X,Y),[X,Z,A,B]), A = -1, B = -1.
+deplacement_possible_silver(Board, [[X,Y],[Z,Y]] ):- get_case(Board, (X,Y), [X,Y,C,D]), C \= -1, D \= -1, Z is X+1, voisinB(Board,(X,Y),[Z,Y,A,B]), A = -1, B = -1.
+deplacement_possible_silver(Board, [[X,Y],[Z,Y]] ):- get_case(Board, (X,Y), [X,Y,C,D]), C \= -1, C \= rabbit, D \= -1, Z is X-1, voisinH(Board,(X,Y),[Z,Y,A,B]), A = -1, B = -1.
+deplacement_possible_silver(Board, [[X,Y],[X,Z]] ):- get_case(Board, (X,Y), [X,Y,C,D]), C \= -1, D \= -1, Z is Y+1, voisinD(Board,(X,Y),[X,Z,A,B]), A = -1, B = -1.
+deplacement_possible_silver(Board, [[X,Y],[X,Z]] ):- get_case(Board, (X,Y), [X,Y,C,D]), C \= -1, D \= -1, Z is Y-1, voisinG(Board,(X,Y),[X,Z,A,B]), A = -1, B = -1.
 
 %EXEMPLES EXECUTION :
 %deplacement_possible([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],[[1,0],[2,0]]).
@@ -107,31 +117,75 @@ deplacement_possible(Board, [[X,Y],[X,Z]] ):- get_case(Board, (X,Y), [X,Y,C,D]),
 %setof([[6,6],[X,Y]],deplacement_possible([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],[[6,6],[X,Y]]),Res).
 
 
-%pousser_possible(Board, PousserEnnemi) -> PousserEnnemi de la forme : [[[[XennemiDepart,YennemiDepart],[XennemiArrive,YennemiArrive]]],[[XallieDepart,YallieDepart],[XallieArrive,YallieArrive]]]
-%Comme pour deplacement_possible, permet de tester si un pion allie peut pousser un pion ennemi.
+%pion_pousser_possible_silver(Board, Pion, Resultat) --> Pour un pion donné, Resultat s'unifie avec une liste d'actions pousser possible. Pour cela on liste les actions pousser possible pour chaque case voisine: Haut, Bas, Gauche, droite.
+
+pion_pousser_possible_silver(Board, [Xallie, Yallie, _, silver], Res):- pion_pousser_possibleB_silver(Board, [Xallie, Yallie, _, silver], Res1), pion_pousser_possibleH_silver(Board, [Xallie, Yallie, _, silver], Res2), pion_pousser_possibleD_silver(Board, [Xallie, Yallie, _, silver], Res3), pion_pousser_possibleG_silver(Board, [Xallie, Yallie, _, silver], Res4), concat(Res1,Res2,TmpRes1), concat(Res3, Res4, TmpRes2), concat(TmpRes1, TmpRes2, Res).
+
+pion_pousser_possibleB_silver(Board, [Xallie, Yallie, _, silver], Res):- Xennemi is Xallie + 1, Yennemi is Yallie, setof([[[Xennemi,Yennemi],[Vennemi,Wennemi]],[[Xallie,Yallie],[Xennemi,Yennemi]]], pousser_possible_silver(Board,[[[Xennemi,Yennemi],[Vennemi,Wennemi]],[[Xallie,Yallie],[Xennemi,Yennemi]]]), Res), !.
+pion_pousser_possibleB_silver(_,_,[]).
+pion_pousser_possibleH_silver(Board, [Xallie, Yallie, _, silver], Res):- Xennemi is Xallie - 1, Yennemi is Yallie, setof([[[Xennemi,Yennemi],[Vennemi,Wennemi]],[[Xallie,Yallie],[Xennemi,Yennemi]]], pousser_possible_silver(Board,[[[Xennemi,Yennemi],[Vennemi,Wennemi]],[[Xallie,Yallie],[Xennemi,Yennemi]]]), Res), !.
+pion_pousser_possibleH_silver(_,_,[]).
+pion_pousser_possibleD_silver(Board, [Xallie, Yallie, _, silver], Res):- Xennemi is Xallie, Yennemi is Yallie + 1, setof([[[Xennemi,Yennemi],[Vennemi,Wennemi]],[[Xallie,Yallie],[Xennemi,Yennemi]]], pousser_possible_silver(Board,[[[Xennemi,Yennemi],[Vennemi,Wennemi]],[[Xallie,Yallie],[Xennemi,Yennemi]]]), Res), !.
+pion_pousser_possibleD_silver(_,_,[]).
+pion_pousser_possibleG_silver(Board, [Xallie, Yallie, _, silver], Res):- Xennemi is Xallie, Yennemi is Yallie - 1, setof([[[Xennemi,Yennemi],[Vennemi,Wennemi]],[[Xallie,Yallie],[Xennemi,Yennemi]]], pousser_possible_silver(Board,[[[Xennemi,Yennemi],[Vennemi,Wennemi]],[[Xallie,Yallie],[Xennemi,Yennemi]]]), Res), !.
+pion_pousser_possibleG_silver(_,_,[]).
+
+%EXEMPLE EXECUTION :
+%pion_pousser_possible_silver([[4,4,cat,silver],[3,4,rabbit,gold],[5,4,rabbit,gold],[4,3,rabbit,gold],[4,5,rabbit,gold]],[4,4,cat,silver],X).
+%pion_pousser_possible_silver([[4,4,cat,silver],[3,4,rabbit,silver],[5,4,rabbit,silver]],[4,4,cat,silver],X).
+
+
+
+%pousser_possible_silver(Board, PousserEnnemi) -> PousserEnnemi de la forme : [[[[XennemiDepart,YennemiDepart],[XennemiArrive,YennemiArrive]]],[[XallieDepart,YallieDepart],[XallieArrive,YallieArrive]]]
+%Comme pour deplacement_possible, permet de tester si un pion allie peut pousser un pion ennemi (déterminé).
 % pas de cut pour pouvoir determiner les possibilités de l'action pousser par un pion avec un setof
 
-pousser_possible(Board, [[[Xennemi,Yennemi],[Zennemi,Yennemi]],[[Xallie,Yallie],[Xennemi,Yennemi]]]):- Zennemi is Xennemi+1, get_case(Board,(Xallie,Yallie), [Xallie,Yallie,TypeAllie,JoueurAllie]), TypeAllie \= -1, JoueurAllie \= -1, get_case(Board, (Xennemi,Yennemi), [Xennemi,Yennemi,TypeEnnemi,JoueurEnnemi]), TypeEnnemi \= -1, JoueurEnnemi \= -1, plus_fort(TypeAllie,TypeEnnemi), voisinB(Board,(Xennemi,Yennemi),[Zennemi,Yennemi,A,B]), A = -1, B = -1. 
-pousser_possible(Board, [[[Xennemi,Yennemi],[Zennemi,Yennemi]],[[Xallie,Yallie],[Xennemi,Yennemi]]]):- Zennemi is Xennemi-1, get_case(Board,(Xallie,Yallie), [Xallie,Yallie,TypeAllie,JoueurAllie]), TypeAllie \= -1, JoueurAllie \= -1, get_case(Board, (Xennemi,Yennemi), [Xennemi,Yennemi,TypeEnnemi,JoueurEnnemi]), TypeEnnemi \= -1, JoueurEnnemi \= -1, plus_fort(TypeAllie,TypeEnnemi), voisinH(Board,(Xennemi,Yennemi),[Zennemi,Yennemi,A,B]), A = -1, B = -1. 
-pousser_possible(Board, [[[Xennemi,Yennemi],[Xennemi,Zennemi]],[[Xallie,Yallie],[Xennemi,Yennemi]]]):- Zennemi is Yennemi+1, get_case(Board,(Xallie,Yallie), [Xallie,Yallie,TypeAllie,JoueurAllie]), TypeAllie \= -1, JoueurAllie \= -1, get_case(Board, (Xennemi,Yennemi), [Xennemi,Yennemi,TypeEnnemi,JoueurEnnemi]), TypeEnnemi \= -1, JoueurEnnemi \= -1, plus_fort(TypeAllie,TypeEnnemi), voisinD(Board,(Xennemi,Yennemi),[Xennemi,Zennemi,A,B]), A = -1, B = -1. 
-pousser_possible(Board, [[[Xennemi,Yennemi],[Xennemi,Zennemi]],[[Xallie,Yallie],[Xennemi,Yennemi]]]):- Zennemi is Yennemi-1, get_case(Board,(Xallie,Yallie), [Xallie,Yallie,TypeAllie,JoueurAllie]), TypeAllie \= -1, JoueurAllie \= -1, get_case(Board, (Xennemi,Yennemi), [Xennemi,Yennemi,TypeEnnemi,JoueurEnnemi]), TypeEnnemi \= -1, JoueurEnnemi \= -1, plus_fort(TypeAllie,TypeEnnemi), voisinG(Board,(Xennemi,Yennemi),[Xennemi,Zennemi,A,B]), A = -1, B = -1. 
+pousser_possible_silver(Board, [[[Xennemi,Yennemi],[Zennemi,Yennemi]],[[Xallie,Yallie],[Xennemi,Yennemi]]]):- Zennemi is Xennemi+1, get_case(Board,(Xallie,Yallie), [Xallie,Yallie,TypeAllie,silver]), TypeAllie \= -1, get_case(Board, (Xennemi,Yennemi), [Xennemi,Yennemi,TypeEnnemi,gold]), TypeEnnemi \= -1, plus_fort(TypeAllie,TypeEnnemi), voisinB(Board,(Xennemi,Yennemi),[Zennemi,Yennemi,A,B]), A = -1, B = -1. 
+pousser_possible_silver(Board, [[[Xennemi,Yennemi],[Zennemi,Yennemi]],[[Xallie,Yallie],[Xennemi,Yennemi]]]):- Zennemi is Xennemi-1, get_case(Board,(Xallie,Yallie), [Xallie,Yallie,TypeAllie,silver]), TypeAllie \= -1, get_case(Board, (Xennemi,Yennemi), [Xennemi,Yennemi,TypeEnnemi,gold]), TypeEnnemi \= -1, plus_fort(TypeAllie,TypeEnnemi), voisinH(Board,(Xennemi,Yennemi),[Zennemi,Yennemi,A,B]), A = -1, B = -1. 
+pousser_possible_silver(Board, [[[Xennemi,Yennemi],[Xennemi,Zennemi]],[[Xallie,Yallie],[Xennemi,Yennemi]]]):- Zennemi is Yennemi+1, get_case(Board,(Xallie,Yallie), [Xallie,Yallie,TypeAllie,silver]), TypeAllie \= -1, get_case(Board, (Xennemi,Yennemi), [Xennemi,Yennemi,TypeEnnemi,gold]), TypeEnnemi \= -1, plus_fort(TypeAllie,TypeEnnemi), voisinD(Board,(Xennemi,Yennemi),[Xennemi,Zennemi,A,B]), A = -1, B = -1. 
+pousser_possible_silver(Board, [[[Xennemi,Yennemi],[Xennemi,Zennemi]],[[Xallie,Yallie],[Xennemi,Yennemi]]]):- Zennemi is Yennemi-1, get_case(Board,(Xallie,Yallie), [Xallie,Yallie,TypeAllie,silver]), TypeAllie \= -1, get_case(Board, (Xennemi,Yennemi), [Xennemi,Yennemi,TypeEnnemi,gold]), TypeEnnemi \= -1, plus_fort(TypeAllie,TypeEnnemi), voisinG(Board,(Xennemi,Yennemi),[Xennemi,Zennemi,A,B]), A = -1, B = -1. 
 
 %EXEMPLE EXECUTION:
-%pousser_possible([[4,5,rabbit,silver],[0,1,rabbit,silver],[4,6,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[5,5,rabbit,gold],[5,6,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],[[[5,5],[6,5]],[[4,5],[5,5]]]).
-%pousser_possible([[4,5,rabbit,silver],[0,1,rabbit,silver],[4,6,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[5,5,rabbit,gold],[5,6,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],[[[5,6],[6,6]],[[4,6],[5,6]]]).
-%pousser_possible([[4,5,rabbit,silver],[0,1,rabbit,silver],[4,6,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[5,5,rabbit,gold],[5,6,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],[[[5,6],[X,Y]],[[4,6],[5,6]]]).
-%setof([[[5,6],[X,Y]],[[4,6],[5,6]]],pousser_possible([[4,5,rabbit,silver],[0,1,rabbit,silver],[4,6,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[5,5,rabbit,gold],[5,6,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],[[[5,6],[X,Y]],[[4,6],[5,6]]]), Res).
+%pousser_possible_silver([[4,5,rabbit,silver],[0,1,rabbit,silver],[4,6,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[5,5,rabbit,gold],[5,6,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],[[[5,5],[6,5]],[[4,5],[5,5]]]).
+%pousser_possible_silver([[4,5,rabbit,silver],[0,1,rabbit,silver],[4,6,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[5,5,rabbit,gold],[5,6,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],[[[5,6],[6,6]],[[4,6],[5,6]]]).
+%pousser_possible_silver([[4,5,rabbit,silver],[0,1,rabbit,silver],[4,6,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[5,5,rabbit,gold],[5,6,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],[[[5,6],[X,Y]],[[4,6],[5,6]]]).
+%setof([[[5,6],[X,Y]],[[4,6],[5,6]]],pousser_possible_silver([[4,5,rabbit,silver],[0,1,rabbit,silver],[4,6,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[5,5,rabbit,gold],[5,6,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],[[[5,6],[X,Y]],[[4,6],[5,6]]]), Res).
 
 
-%tirer_possible(Board, TirerEnnemi) -> TirerEnnemi de la forme : [[[XallieDepart,YallieDepart],[XallieArrive,YallieArrive]],[[[XennemiDepart,YennemiDepart],[XennemiArrive,YennemiArrive]]]]
-tirer_possible(Board, [[[Xallie,Yallie],[Zallie,Yallie]],[[Xennemi,Yennemi],[Xallie,Yallie]]]):- Zallie is Xallie+1, get_case(Board,(Xallie,Yallie), [Xallie,Yallie,TypeAllie,JoueurAllie]), TypeAllie \= -1, JoueurAllie \= -1, get_case(Board, (Xennemi,Yennemi), [Xennemi,Yennemi,TypeEnnemi,JoueurEnnemi]), TypeEnnemi \= -1, JoueurEnnemi \= -1, plus_fort(TypeAllie,TypeEnnemi), voisinB(Board,(Xallie,Yallie),[Zallie,Yallie,A,B]), A = -1, B = -1. 
-tirer_possible(Board, [[[Xallie,Yallie],[Zallie,Yallie]],[[Xennemi,Yennemi],[Xallie,Yallie]]]):- Zallie is Xallie-1, get_case(Board,(Xallie,Yallie), [Xallie,Yallie,TypeAllie,JoueurAllie]), TypeAllie \= -1, JoueurAllie \= -1, get_case(Board, (Xennemi,Yennemi), [Xennemi,Yennemi,TypeEnnemi,JoueurEnnemi]), TypeEnnemi \= -1, JoueurEnnemi \= -1, plus_fort(TypeAllie,TypeEnnemi), voisinH(Board,(Xallie,Yallie),[Zallie,Yallie,A,B]), A = -1, B = -1. 
-tirer_possible(Board, [[[Xallie,Yallie],[Xallie,Zallie]],[[Xennemi,Yennemi],[Xallie,Yallie]]]):- Zallie is Yallie+1, get_case(Board,(Xallie,Yallie), [Xallie,Yallie,TypeAllie,JoueurAllie]), TypeAllie \= -1, JoueurAllie \= -1, get_case(Board, (Xennemi,Yennemi), [Xennemi,Yennemi,TypeEnnemi,JoueurEnnemi]), TypeEnnemi \= -1, JoueurEnnemi \= -1, plus_fort(TypeAllie,TypeEnnemi), voisinD(Board,(Xallie,Yallie),[Xallie,Zallie,A,B]), A = -1, B = -1. 
-tirer_possible(Board, [[[Xallie,Yallie],[Xallie,Zallie]],[[Xennemi,Yennemi],[Xallie,Yallie]]]):- Zallie is Yallie-1, get_case(Board,(Xallie,Yallie), [Xallie,Yallie,TypeAllie,JoueurAllie]), TypeAllie \= -1, JoueurAllie \= -1, get_case(Board, (Xennemi,Yennemi), [Xennemi,Yennemi,TypeEnnemi,JoueurEnnemi]), TypeEnnemi \= -1, JoueurEnnemi \= -1, plus_fort(TypeAllie,TypeEnnemi), voisinG(Board,(Xallie,Yallie),[Xallie,Zallie,A,B]), A = -1, B = -1. 
+
+
+%pion_tirer_possible_silver(Board, Pion, Resultat) --> Pour un pion donné, Resultat s'unifie avec une liste d'actions tirer possible. Pour cela on liste les actions tirer possible pour chaque case voisine: Haut, Bas, Gauche, droite.
+
+pion_tirer_possible_silver(Board, [Xallie, Yallie, _, silver], Res):- pion_tirer_possibleB_silver(Board, [Xallie, Yallie, _, silver], Res1), pion_tirer_possibleH_silver(Board, [Xallie, Yallie, _, silver], Res2), pion_tirer_possibleD_silver(Board, [Xallie, Yallie, _, silver], Res3), pion_tirer_possibleG_silver(Board, [Xallie, Yallie, _, silver], Res4), concat(Res1,Res2,TmpRes1), concat(Res3, Res4, TmpRes2), concat(TmpRes1, TmpRes2, Res).
+
+pion_tirer_possibleB_silver(Board, [Xallie, Yallie, _, silver], Res):- Xennemi is Xallie + 1, Yennemi is Yallie, setof([[[Xallie,Yallie],[Vallie,Wallie]],[[Xennemi,Yennemi],[Xallie,Yallie]]], tirer_possible_silver(Board,[[[Xallie,Yallie],[Vallie,Wallie]],[[Xennemi,Yennemi],[Xallie,Yallie]]]), Res), !.
+pion_tirer_possibleB_silver(_,_,[]).
+pion_tirer_possibleH_silver(Board, [Xallie, Yallie, _, silver], Res):- Xennemi is Xallie - 1, Yennemi is Yallie, setof([[[Xallie,Yallie],[Vallie,Wallie]],[[Xennemi,Yennemi],[Xallie,Yallie]]], tirer_possible_silver(Board,[[[Xallie,Yallie],[Vallie,Wallie]],[[Xennemi,Yennemi],[Xallie,Yallie]]]), Res), !.
+pion_tirer_possibleH_silver(_,_,[]).
+pion_tirer_possibleD_silver(Board, [Xallie, Yallie, _, silver], Res):- Xennemi is Xallie, Yennemi is Yallie + 1, setof([[[Xallie,Yallie],[Vallie,Wallie]],[[Xennemi,Yennemi],[Xallie,Yallie]]], tirer_possible_silver(Board,[[[Xallie,Yallie],[Vallie,Wallie]],[[Xennemi,Yennemi],[Xallie,Yallie]]]), Res), !.
+pion_tirer_possibleD_silver(_,_,[]).
+pion_tirer_possibleG_silver(Board, [Xallie, Yallie, _, silver], Res):- Xennemi is Xallie, Yennemi is Yallie - 1, setof([[[Xallie,Yallie],[Vallie,Wallie]],[[Xennemi,Yennemi],[Xallie,Yallie]]], tirer_possible_silver(Board,[[[Xallie,Yallie],[Vallie,Wallie]],[[Xennemi,Yennemi],[Xallie,Yallie]]]), Res), !.
+pion_tirer_possibleG_silver(_,_,[]).
+
+%EXEMPLE EXECUTION :
+%pion_tirer_possible_silver([[4,4,cat,silver],[3,4,rabbit,gold],[4,5,rabbit,gold]],[4,4,cat,silver],X).
+%pion_tirer_possible_silver([[4,4,cat,silver],[3,4,rabbit,silver],[4,5,rabbit,silver]],[4,4,cat,silver],X).
+
+
+
+
+%tirer_possible_silver(Board, TirerEnnemi) -> TirerEnnemi de la forme : [[[XallieDepart,YallieDepart],[XallieArrive,YallieArrive]],[[[XennemiDepart,YennemiDepart],[XennemiArrive,YennemiArrive]]]]
+tirer_possible_silver(Board, [[[Xallie,Yallie],[Zallie,Yallie]],[[Xennemi,Yennemi],[Xallie,Yallie]]]):- Zallie is Xallie+1, get_case(Board,(Xallie,Yallie), [Xallie,Yallie,TypeAllie,silver]), TypeAllie \= -1, get_case(Board, (Xennemi,Yennemi), [Xennemi,Yennemi,TypeEnnemi,gold]), TypeEnnemi \= -1, plus_fort(TypeAllie,TypeEnnemi), voisinB(Board,(Xallie,Yallie),[Zallie,Yallie,A,B]), A = -1, B = -1. 
+tirer_possible_silver(Board, [[[Xallie,Yallie],[Zallie,Yallie]],[[Xennemi,Yennemi],[Xallie,Yallie]]]):- Zallie is Xallie-1, get_case(Board,(Xallie,Yallie), [Xallie,Yallie,TypeAllie,silver]), TypeAllie \= -1, get_case(Board, (Xennemi,Yennemi), [Xennemi,Yennemi,TypeEnnemi,gold]), TypeEnnemi \= -1, plus_fort(TypeAllie,TypeEnnemi), voisinH(Board,(Xallie,Yallie),[Zallie,Yallie,A,B]), A = -1, B = -1. 
+tirer_possible_silver(Board, [[[Xallie,Yallie],[Xallie,Zallie]],[[Xennemi,Yennemi],[Xallie,Yallie]]]):- Zallie is Yallie+1, get_case(Board,(Xallie,Yallie), [Xallie,Yallie,TypeAllie,silver]), TypeAllie \= -1, get_case(Board, (Xennemi,Yennemi), [Xennemi,Yennemi,TypeEnnemi,gold]), TypeEnnemi \= -1, plus_fort(TypeAllie,TypeEnnemi), voisinD(Board,(Xallie,Yallie),[Xallie,Zallie,A,B]), A = -1, B = -1. 
+tirer_possible_silver(Board, [[[Xallie,Yallie],[Xallie,Zallie]],[[Xennemi,Yennemi],[Xallie,Yallie]]]):- Zallie is Yallie-1, get_case(Board,(Xallie,Yallie), [Xallie,Yallie,TypeAllie,silver]), TypeAllie \= -1, get_case(Board, (Xennemi,Yennemi), [Xennemi,Yennemi,TypeEnnemi,gold]), TypeEnnemi \= -1, plus_fort(TypeAllie,TypeEnnemi), voisinG(Board,(Xallie,Yallie),[Xallie,Zallie,A,B]), A = -1, B = -1. 
 
 %EXEMPLE EXECUTION:
-%tirer_possible([[0,0,rabbit,silver],[0,1,rabbit,silver],[5,5,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],[[[5,5],[4,5]],[[6,5],[5,5]]]).
-%setof([[[5,5],[X,Y]],[[6,5],[5,5]]],tirer_possible([[0,0,rabbit,silver],[0,1,rabbit,silver],[5,5,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],[[[5,5],[X,Y]],[[6,5],[5,5]]]),Res).
+%tirer_possible_silver([[0,0,rabbit,silver],[0,1,rabbit,silver],[5,5,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],[[[5,5],[4,5]],[[6,5],[5,5]]]).
+%setof([[[5,5],[X,Y]],[[6,5],[5,5]]],tirer_possible_silver([[0,0,rabbit,silver],[0,1,rabbit,silver],[5,5,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],[[[5,5],[X,Y]],[[6,5],[5,5]]]),Res).
+
+
+
 
 
 %voisins(Board, Coord, Res) --> Res s unifie avec une liste des voisins [VoisinH, VoisinB, VoisinG, VoisinD] Avec VoisinH pouvant être : [X,Y,piece,joueur], [X,Y,-1,-1] ou [] (quand hors du plateau). 
