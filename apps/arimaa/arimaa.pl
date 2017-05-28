@@ -211,15 +211,40 @@ soustraction_score(Valeur):- score(TmpScore), retractall(score(_)), Score is Tmp
 
 
 %update_board(Board, NvBoard, Gamestate, NvGamestate, Action(s))
-
 %1- deplacement
-%2- test mort
+%2- test mort (maj board si mort)
 %3- boucle autant de fois qu'il y a d'actions
 
-%mort():-
+
+update_board(Board, Board, Gamestate, Gamestate, []):- !.
+update_board(Board, NvBoard, Gamestate, NvGamestate, [[[Xdepart, Ydepart], [Xarrive, Yarrive]]|Q]):- deplacement(Board, TmpNvBoard, (Xdepart,Ydepart), (Xarrive,Yarrive)), maj_mort(TmpNvBoard,TmpNvBoard2,Gamestate,TmpNvGamestate,(Xarrive,Yarrive)),  update_board(TmpNvBoard2, NvBoard, TmpNvGamestate, NvGamestate, Q).
+
+%update_board([[1,2,rabbit, silver],[5,7, rabbit, gold]], NvBoard, [silver, []], NvGamestate, [[[1,2],[2,2]]] ).
+%update_board([[1,2,rabbit, silver],[5,7, rabbit, gold], [2,3,rabbit,silver]], NvBoard, [silver, []], NvGamestate, [[[1,2],[2,2]]] ).
+%update_board([[0,0,cat, silver],[1,0, rabbit, gold]], NvBoard, [silver, []], NvGamestate, [[[1, 0], [2, 0]], [[0, 0], [1, 0]]] ).
+%update_board([[3,5,cat, silver],[4,5, rabbit, gold]], NvBoard, [silver, []], NvGamestate, [[[4, 5], [5, 5]], [[3, 5], [4, 5]]] ).
+%update_board([[3,5,cat, silver],[4,5, rabbit, gold], [6,5, rabbit, gold]], NvBoard, [silver, []], NvGamestate, [[[4, 5], [5, 5]], [[3, 5], [4, 5]]] ).
+
+
+maj_mort(Board,NvBoard,Gamestate,NvGamestate,(X,Y)):- mort(Board, (X,Y)), get_case(Board, (X,Y), Pion), delete_pion(Pion, Board, NvBoard), maj_gamestate(Pion, Gamestate, NvGamestate), !.
+maj_mort(Board, Board, Gamestate, Gamestate, _).
 
 
 
+mort(Board, (2,2)):- voisins(Board, (2,2), Res), get_case(Board, (2,2), [2,2,_,Joueur]), \+element([_,_,_,Joueur], Res), !.
+mort(Board, (2,5)):- voisins(Board, (2,5), Res), get_case(Board, (2,5), [2,5,_,Joueur]), \+element([_,_,_,Joueur], Res), !.
+mort(Board, (5,2)):- voisins(Board, (5,2), Res), get_case(Board, (5,2), [5,2,_,Joueur]), \+element([_,_,_,Joueur], Res), !.
+mort(Board, (5,5)):- voisins(Board, (5,5), Res), get_case(Board, (5,5), [5,5,_,Joueur]), \+element([_,_,_,Joueur], Res), !.
+mort(Board,_):- fail. 
+
+%mort([[2,2,rabbit,silver]], (2,2)).
+%mort([[5,5,rabbit,silver], [6,5,rabbit,gold]], (5,5)).
+%mort([[2,2,rabbit,silver], [3,2,rabbit,silver]], (2,2)).
+
+
+maj_gamestate(Pion, [Joueur | [Liste]], [Joueur | [R]]):- concat([Pion], Liste, R).
+%maj_gamestate([2,2,rabbit,silver], [silver, []], Res).
+%maj_gamestate([2,2,rabbit,silver], [silver, [ [0,1,rabbit,silver],[0,2,horse,silver] ]], Res).
 
 
 
@@ -236,15 +261,24 @@ deplacement([A|E], [A|R], (LigneD,ColonneD), (LigneA, ColonneA) ):- deplacement(
 %PROTOTYPE : delete_pion(pion,board,R).
 %EXECUTION : delete_pion([0,0,rabbit,silver],[[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],R).
 
+% delete_pion(_,[],_).
+% delete_pion(X,[X|Q],R):- concat(_,Q,R),!.
+% delete_pion(X,[T|Q],[T|R]):-delete_pion(X,Q,R).
+
 delete_pion(_,[],_).
-delete_pion(X,[X|Q],R):- concat(_,Q,R),!.
+delete_pion(X,[X|Q],Q):- !.
 delete_pion(X,[T|Q],[T|R]):-delete_pion(X,Q,R).
+
+
+
+
+
 
 %mise à jour du board après avoir déplacé un pion. 
 %PROTOTYPE : maj_board(Board,P,X,Y,R). p est un pion avant de délplacement, X et Y sont les nouvelles coordonnées de ce pion et R est la nouvelle board mise à jour.
 %EXECUTION : maj_board([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],[0,0,rabbit,silver],1,1,R).
 
-maj_board(Board,[X1,Y1,T,J],X,Y,R):- delete_pion([X1,Y1,T,J],Board,R1),concat([[X,Y,T,J]],R1,R).
+%maj_board(Board,[X1,Y1,T,J],X,Y,R):- delete_pion([X1,Y1,T,J],Board,R1),concat([[X,Y,T,J]],R1,R).
 
 
 
