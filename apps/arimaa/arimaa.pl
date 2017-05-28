@@ -49,13 +49,47 @@
 %				[[[XallieDepart,YallieDepart],[XallieArrive,YallieArrive]],[[[XennemiDepart,YennemiDepart],[XennemiArrive,YennemiArrive]]]]			
 %
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%	LISTE DES TESTS POUR UNE ACTION QUI MODIFIENT LE SCORE
+%
+%		(Selon les stratégies une même action n'a pas forcement la même valeur, ne pas hésiter à mettre plusieurs valeurs pour chaque stratégie)		
+%
+%		- score de depart deplacement: 0 (à definir)			
+%		- score de depart pousser: 0 (à definir)
+%		- score de depart tirer: 0 (à definir)
+%		
+%			- score pour un lapin se deplacant sur la ligne 7 : +beaucoup (à définir)
+%			- score pour lapin allant vers ligne 7 (dégagée) : +nombre (à definir)
+%			- score pour un lapin allant vers le bas (score modifié selon que ce lapin est plus ou moins loin de la ligne 7) : +nombre (à définir)			
+%			- score pour un suicide dans trappe : -beaucoup (à définir)
+%			- score pour un pion allant se mettre dans l'état "freeze" : -nombre (à définir)
+%			- score pour un pion se déplacant près d'un pion plus fort : - nombre (à définir)
+%			- score pour un pion tuant un adversaire : +nombre (à définir)
+%			.
+%			.
+%			.
+
+%Remarque : les scores et stratégies doivent aussi êtres définies pour des actions futur, par exemple : - score pour un deplacement de pion mettant "en difficulté" un pion adverse près d'une trappe  : + nombre
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%	EXPLICATIONS DES TESTS QUI MODIFIENT LE SCORE D'UNE ACTION (pour mieux effectuer l'implémentation)
+%
+%		- Si un lapin est sur la ligne 6 et qu'il peut aller vers la ligne 7 alors score +beaucoup.
+%			Action de deplacement [[6,_], [7,_]] avec pion [6,_,rabbit,silver] alors score +beaucoup.
+%		-
+%
+%
 
 
-%Test : Un test pour voir si get_moves marche (envoie juste à l'application les 4 premiers mouvements déterminés, risque de conflits et bug) 
-%get_moves(Moves, Gamestate, Board):- tout_deplacement_possible_silver(Board, Board, Res), concat([[[A,B],[C,D]],[[E,F],[G,H]],[[I,J],[K,L]],[[M,N],[O,P]]],Q,Res), Moves = [[[A,B],[C,D]],[[E,F],[G,H]],[[I,J],[K,L]],[[M,N],[O,P]]].
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%	(à implementer plus tard) EXPLICATION DES STRATEGIES GENERALES A AVOIR SELON L'ETAT DU PLATEAU
+%
+%
+%
+%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%			Debut Des Prédicats de bases			%
+%			 Prédicats de bases						%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%									
 
 
@@ -65,20 +99,177 @@ concat([T|Q],L,[T|R]):- concat(Q,L,R).
 
 %element du poly
 element(X, [X|_]).
-element(X, [T|Q]):- element(X,Q).
+element(X, [_|Q]):- element(X,Q).
 %element([4,4,rabbit,silver], [[4,4,rabbit,silver],[5,4,dog,gold]]).
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%			Boucle principale 						%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+get_moves(Moves, Gamestate, Board):- recup_meilleurs_coups(Board, Gamestate, 4, 0, Moves).
+
+recup_meilleurs_coups(Board, Gamestate, I, K, Res) :- I > K, action_tour_silver(Board, I, Consom, TmpRes), update_board(Board, NvBoard, Gamestate, NvGamestate, TmpRes), NvI is I - Consom, recup_meilleurs_coups(NvBoard, NvGamestate, NvI, K, TRes), concat(TmpRes, TRes, Res).
+recup_meilleurs_coups(_,_,I,K):- I = K. 
+
+
+
+action_tour_silver(Board, Act, Consom, Res):-
+	Act > 1,
+	tout_deplacement_possible_silver(Board, Board, ResDep), 
+	score_tout_deplacement_silver(Board, ResDep, ResDepScore), 
+	tout_pousser_possible_silver(Board, Board, ResPou), 
+	score_tout_pousser_silver(Board, ResPou, ResPouScore), 
+	tout_tirer_possible_silver(Board, Board, ResTir), 
+	score_tout_tirer_silver(Board, ResTir, ResTirScore), 
+	meilleur_action(ResDepScore, Res1),
+	meilleur_action(ResPouScore, Res2),
+	meilleur_action(ResTirScore, Res3),
+	meilleur_action(Res1, Res2, Res3, Consom, Res).
+	
+action_tour_silver(Board, 1, 1, Res):-
+	tout_deplacement_possible_silver(Board, Board, ResDep), 
+	score_tout_deplacement_silver(Board, ResDep, ResDepScore), 
+	meilleur_action(ResDepScore, [_|Res]).
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%			Predicats controle Score			%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+score_tout_deplacement_silver(_, [], []).
+score_tout_deplacement_silver(Board, [T|Q], ResDepScore):- score_deplacement_silver(Board, T, ResScore), score_tout_deplacement_silver(Board, Q, TmpRes), concat([[ResScore|T]], TmpRes, ResDepScore).
+
+score_tout_pousser_silver(_, [], []).
+score_tout_pousser_silver(Board, [T|Q], ResDepScore):- score_pousser_silver(Board, T, ResScore), score_tout_pousser_silver(Board, Q, TmpRes), concat([[ResScore|T]], TmpRes, ResDepScore).
+
+score_tout_tirer_silver(_, [], []).
+score_tout_tirer_silver(Board, [T|Q], ResDepScore):- score_tirer_silver(Board, T, ResScore), score_tout_tirer_silver(Board, Q, TmpRes), concat([[ResScore|T]], TmpRes, ResDepScore).
+
+
+score_deplacement_silver(Board, Deplacement, ScoreDep):- creation_score(0), cycle_test_deplacement_silver(Board,Deplacement), score(ScoreDep).
+
+score_pousser_silver(Board, Pousser, ScoreDep):- creation_score(0), cycle_test_pousser_silver(Board,Pousser), score(ScoreDep).
+
+score_tirer_silver(Board, Tirer, ScoreDep):- creation_score(0), cycle_test_tirer_silver(Board,Tirer), score(ScoreDep).
+
+
+
+
+meilleur_action([T|Q], Res):- retractall(actionMaxScore(_)), asserta(actionMaxScore(T)), choix_meilleur_action(Q), actionMaxScore(Res), !.
+choix_meilleur_action([]).
+choix_meilleur_action([[Score|Action]|Q]):- actionMaxScore([A|_]), Score > A, retractall(actionMaxScore(_)), asserta(actionMaxScore([Score|Action])), choix_meilleur_action(Q).
+choix_meilleur_action([[Score|_]|Q]):- actionMaxScore([A|_]), Score =< A, choix_meilleur_action(Q).
+
+%meilleur_action([[0,[[3,2],[4,2]]],[-9,[[6,2],[6,3]]],[59,[[6,2],[7,2]]],[23,[[5,2],[6,2]]]], Res).
+
+meilleur_action([Sc1|A1], [Sc2|[A2]], [Sc3|[A3]], 1, A1):- Sc1 >= Sc2, Sc1 >= Sc3, !.
+meilleur_action([Sc1|A1], [Sc2|[A2]], [Sc3|[A3]], 2, A2):- Sc2 >= Sc1, Sc2 >= Sc3, !.
+meilleur_action([Sc1|A1], [Sc2|[A2]], [Sc3|[A3]], 2, A3):- Sc3 >= Sc2, Sc3 >= Sc1.
+
+%meilleur_action([-9,[[6,2],[6,3]]],[6, [[[2, 7], [3, 7]], [[1, 7], [2, 7]]]],[5, [[[3, 7], [4, 7]], [[2, 7], [3, 7]]]], Consom, Res ).
+
+
+
+
+creation_score(Score):- retractall(score(_)), asserta(score(Score)).
+addition_score(Valeur):- score(TmpScore), retractall(score(_)), Score is TmpScore + Valeur, asserta(score(Score)). 
+soustraction_score(Valeur):- score(TmpScore), retractall(score(_)), Score is TmpScore - Valeur, asserta(score(Score)). 
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 	Prédicats Cycles de tests qui modifient le score	%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+	
+	
+	
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
+% test consequences d'actions
+%
+	
+%tuer_ennemi(Board, Action)
+
+
+%suicide(Board, Action)
+
+
+%freeze_ennemi(Board, Action)
+
+
+%freeze_allie(Board, Action)
+
+
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+	
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%	Prédicats Mise à jour du plateau		%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%update_board(Board, NvBoard, Gamestate, NvGamestate, Action(s))
+
+%1- deplacement
+%2- test mort
+%3- boucle autant de fois qu'il y a d'actions
+
+%mort():-
+
+
+
+
+
+
+%deplacement(Board,NvBoard,Depart,Arrive) :- NvBoard s unifie avec Board modifié, on modifie seulement les coordonnées d une pièce sans verification.
+
+deplacement([[A,B,C,D]|E], [[LigneA,ColonneA,C,D]|E], (A,B), (LigneA, ColonneA)):- !.
+deplacement([A|E], [A|R], (LigneD,ColonneD), (LigneA, ColonneA) ):- deplacement(E,R,(LigneD,ColonneD), (LigneA, ColonneA) ).
+
+%EXEMPLE EXECUTION :
+%deplacement([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]], Res, (1,1), (2,1)).
+
+
+%suppression d un pion du plateau lorsqu il est mangé.
+%PROTOTYPE : delete_pion(pion,board,R).
+%EXECUTION : delete_pion([0,0,rabbit,silver],[[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],R).
+
+delete_pion(_,[],_).
+delete_pion(X,[X|Q],R):- concat(_,Q,R),!.
+delete_pion(X,[T|Q],[T|R]):-delete_pion(X,Q,R).
+
+%mise à jour du board après avoir déplacé un pion. 
+%PROTOTYPE : maj_board(Board,P,X,Y,R). p est un pion avant de délplacement, X et Y sont les nouvelles coordonnées de ce pion et R est la nouvelle board mise à jour.
+%EXECUTION : maj_board([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],[0,0,rabbit,silver],1,1,R).
+
+maj_board(Board,[X1,Y1,T,J],X,Y,R):- delete_pion([X1,Y1,T,J],Board,R1),concat([[X,Y,T,J]],R1,R).
+
+
+
+
+
+
+	
+	
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%	Prédicats règles du jeu Arimaa				%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+	
 %pion_freeze(Board,Pion) --> indique si un pion est freeze (ne peut rien faire).
 
-pion_freeze(Board, [X,Y,TypeAllie,silver]):- voisins(Board, (X,Y), Res), element([_,_,TypeEnnemi,gold], Res), plus_fort(TypeEnnemi, TypeAllie), \+element([_,_,Type,silver], Res).
-pion_freeze(Board, [X,Y,TypeAllie,gold]):- voisins(Board, (X,Y), Res), element([_,_,TypeEnnemi,silver], Res), plus_fort(TypeEnnemi, TypeAllie), \+element([_,_,Type,silver], Res).
+pion_freeze(Board, [X,Y,TypeAllie,silver]):- voisins(Board, (X,Y), Res), element([_,_,TypeEnnemi,gold], Res), plus_fort(TypeEnnemi, TypeAllie), \+element([_,_,_,silver], Res).
+pion_freeze(Board, [X,Y,TypeAllie,gold]):- voisins(Board, (X,Y), Res), element([_,_,TypeEnnemi,silver], Res), plus_fort(TypeEnnemi, TypeAllie), \+element([_,_,_,silver], Res).
 
 %EXEMPLE EXECUTION: 
 %pion_freeze([[4,4,rabbit,silver],[5,4,dog,gold]], [4,4,rabbit,silver] ).
 %pion_freeze([[4,4,camel,silver],[5,4,dog,gold]], [4,4,camel,silver] ).
 %pion_freeze([[4,4,camel,silver],[5,4,dog,gold],[3,4,elephant,gold]], [4,4,camel,silver] ).
 %pion_freeze([[4,4,rabbit,silver],[3,4,rabbit,silver],[5,4,dog,gold]], [4,4,rabbit,silver]).
+
+
 
 %tout_deplacement_possible_silver(Board, TempBoard, Res) --> Res s unifie avec une liste de tous les deplacements possibles du joueur silver avec une profondeur de 1.
 %Pour cela on utilise le prédicat deplacement_possible qui test si un deplacement est possible, et ce prédicat est combiné avec un setof.
@@ -94,12 +285,13 @@ tout_deplacement_possible_silver(Board, [[_,_,_,_]|B], Res):- tout_deplacement_p
 
 
 %pion_deplacement_possible_silver(_silverBoard, Pion, Resultat)--> pour un pion donné unifie Resultat avec tous ses deplacements possibles.
-pion_deplacement_possible_silver(Board, [Xdepart,Ydepart,_,_], Res):- setof([[Xdepart,Ydepart],[Xarrive,Yarrive]], deplacement_possible_silver(Board,[[Xdepart,Ydepart],[Xarrive,Yarrive]]), Res).
+pion_deplacement_possible_silver(Board, [Xdepart,Ydepart,TypeAllie,silver], Res):- \+ pion_freeze(Board, [Xdepart,Ydepart,TypeAllie,silver]), setof([[Xdepart,Ydepart],[Xarrive,Yarrive]], deplacement_possible_silver(Board,[[Xdepart,Ydepart],[Xarrive,Yarrive]]), Res).
 
 %EXEMPLE EXECUTION :
 %pion_deplacement_possible_silver([[4,7,cat,silver],[5,7,rabbit,silver]],[4,7,cat,silver], Res ).
 %pion_deplacement_possible_silver([[4,7,rabbit,silver],[5,7,rabbit,silver]],[4,7,rabbit,silver], Res ).
-
+%pion_deplacement_possible_silver([[4,7,rabbit,silver],[5,7,cat,gold]],[4,7,rabbit,silver], Res ).
+%pion_deplacement_possible_silver([[4,7,cat,silver],[5,7,cat,gold]],[4,7,cat,silver], Res ).
 
 
 %deplacement_possible_silver(Board, Deplacement ) --> renvoie vrai si le deplacement du pion d une case à une autre case voisine (précisée) est possible sinon renvoie faux (la profondeur du deplacement est de 1 case).
@@ -112,14 +304,23 @@ deplacement_possible_silver(Board, [[X,Y],[X,Z]] ):- get_case(Board, (X,Y), [X,Y
 deplacement_possible_silver(Board, [[X,Y],[X,Z]] ):- get_case(Board, (X,Y), [X,Y,C,D]), C \= -1, D \= -1, Z is Y-1, voisinG(Board,(X,Y),[X,Z,A,B]), A = -1, B = -1.
 
 %EXEMPLES EXECUTION :
-%deplacement_possible([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],[[1,0],[2,0]]).
-%deplacement_possible([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],[[6,6],[X,Y]]).
+%deplacement_possible_silver([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],[[1,0],[2,0]]).
+%deplacement_possible_silver([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],[[6,6],[X,Y]]).
 %setof([[6,6],[X,Y]],deplacement_possible([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],[[6,6],[X,Y]]),Res).
+
+
+%tout_pousser_possible_silver(Board, TempBoard, Resultat): Resultat s'unifie avec toutes les actions pousser dispo.
+tout_pousser_possible_silver(_, [], []).
+tout_pousser_possible_silver(Board, [[X,Y,Type,silver]|B], Res):- pion_pousser_possible_silver(Board,[X,Y,Type,silver], TmpRes), tout_pousser_possible_silver(Board,B,TRes), concat(TmpRes,TRes,Res), !.
+tout_pousser_possible_silver(Board, [[_,_,_,_]|B], Res):- tout_pousser_possible_silver(Board, B, Res). 
+
+%EXEMPLE EXECUTION:
+%tout_pousser_possible_silver([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]], [[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]], Res).
 
 
 %pion_pousser_possible_silver(Board, Pion, Resultat) --> Pour un pion donné, Resultat s'unifie avec une liste d'actions pousser possible. Pour cela on liste les actions pousser possible pour chaque case voisine: Haut, Bas, Gauche, droite.
 
-pion_pousser_possible_silver(Board, [Xallie, Yallie, _, silver], Res):- pion_pousser_possibleB_silver(Board, [Xallie, Yallie, _, silver], Res1), pion_pousser_possibleH_silver(Board, [Xallie, Yallie, _, silver], Res2), pion_pousser_possibleD_silver(Board, [Xallie, Yallie, _, silver], Res3), pion_pousser_possibleG_silver(Board, [Xallie, Yallie, _, silver], Res4), concat(Res1,Res2,TmpRes1), concat(Res3, Res4, TmpRes2), concat(TmpRes1, TmpRes2, Res).
+pion_pousser_possible_silver(Board, [Xallie, Yallie, TypeAllie, silver], Res):- \+ pion_freeze(Board, [Xallie,Yallie,TypeAllie,silver]), pion_pousser_possibleB_silver(Board, [Xallie, Yallie, _, silver], Res1), pion_pousser_possibleH_silver(Board, [Xallie, Yallie, _, silver], Res2), pion_pousser_possibleD_silver(Board, [Xallie, Yallie, _, silver], Res3), pion_pousser_possibleG_silver(Board, [Xallie, Yallie, _, silver], Res4), concat(Res1,Res2,TmpRes1), concat(Res3, Res4, TmpRes2), concat(TmpRes1, TmpRes2, Res).
 
 pion_pousser_possibleB_silver(Board, [Xallie, Yallie, _, silver], Res):- Xennemi is Xallie + 1, Yennemi is Yallie, setof([[[Xennemi,Yennemi],[Vennemi,Wennemi]],[[Xallie,Yallie],[Xennemi,Yennemi]]], pousser_possible_silver(Board,[[[Xennemi,Yennemi],[Vennemi,Wennemi]],[[Xallie,Yallie],[Xennemi,Yennemi]]]), Res), !.
 pion_pousser_possibleB_silver(_,_,[]).
@@ -133,6 +334,7 @@ pion_pousser_possibleG_silver(_,_,[]).
 %EXEMPLE EXECUTION :
 %pion_pousser_possible_silver([[4,4,cat,silver],[3,4,rabbit,gold],[5,4,rabbit,gold],[4,3,rabbit,gold],[4,5,rabbit,gold]],[4,4,cat,silver],X).
 %pion_pousser_possible_silver([[4,4,cat,silver],[3,4,rabbit,silver],[5,4,rabbit,silver]],[4,4,cat,silver],X).
+%pion_pousser_possible_silver([[4,4,cat,silver],[3,4,dog,gold],[5,4,rabbit,gold],[4,3,rabbit,gold],[4,5,rabbit,gold]],[4,4,cat,silver],X).
 
 
 
@@ -153,10 +355,17 @@ pousser_possible_silver(Board, [[[Xennemi,Yennemi],[Xennemi,Zennemi]],[[Xallie,Y
 
 
 
+%tout_tirer_possible_silver(Board, TempBoard, Resultat): Resultat s'unifie avec toutes les actions tirer dispo.
+tout_tirer_possible_silver(_, [], []).
+tout_tirer_possible_silver(Board, [[X,Y,Type,silver]|B], Res):- pion_tirer_possible_silver(Board,[X,Y,Type,silver], TmpRes), tout_tirer_possible_silver(Board,B,TRes), concat(TmpRes,TRes,Res), !.
+tout_tirer_possible_silver(Board, [[_,_,_,_]|B], Res):- tout_tirer_possible_silver(Board, B, Res). 
+%EXEMPLE EXECUTION:
+%tout_tirer_possible_silver([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[3,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]], [[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[3,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]], Res).
+
 
 %pion_tirer_possible_silver(Board, Pion, Resultat) --> Pour un pion donné, Resultat s'unifie avec une liste d'actions tirer possible. Pour cela on liste les actions tirer possible pour chaque case voisine: Haut, Bas, Gauche, droite.
 
-pion_tirer_possible_silver(Board, [Xallie, Yallie, _, silver], Res):- pion_tirer_possibleB_silver(Board, [Xallie, Yallie, _, silver], Res1), pion_tirer_possibleH_silver(Board, [Xallie, Yallie, _, silver], Res2), pion_tirer_possibleD_silver(Board, [Xallie, Yallie, _, silver], Res3), pion_tirer_possibleG_silver(Board, [Xallie, Yallie, _, silver], Res4), concat(Res1,Res2,TmpRes1), concat(Res3, Res4, TmpRes2), concat(TmpRes1, TmpRes2, Res).
+pion_tirer_possible_silver(Board, [Xallie, Yallie, TypeAllie, silver], Res):- \+ pion_freeze(Board, [Xallie,Yallie,TypeAllie,silver]), pion_tirer_possibleB_silver(Board, [Xallie, Yallie, _, silver], Res1), pion_tirer_possibleH_silver(Board, [Xallie, Yallie, _, silver], Res2), pion_tirer_possibleD_silver(Board, [Xallie, Yallie, _, silver], Res3), pion_tirer_possibleG_silver(Board, [Xallie, Yallie, _, silver], Res4), concat(Res1,Res2,TmpRes1), concat(Res3, Res4, TmpRes2), concat(TmpRes1, TmpRes2, Res).
 
 pion_tirer_possibleB_silver(Board, [Xallie, Yallie, _, silver], Res):- Xennemi is Xallie + 1, Yennemi is Yallie, setof([[[Xallie,Yallie],[Vallie,Wallie]],[[Xennemi,Yennemi],[Xallie,Yallie]]], tirer_possible_silver(Board,[[[Xallie,Yallie],[Vallie,Wallie]],[[Xennemi,Yennemi],[Xallie,Yallie]]]), Res), !.
 pion_tirer_possibleB_silver(_,_,[]).
@@ -170,6 +379,8 @@ pion_tirer_possibleG_silver(_,_,[]).
 %EXEMPLE EXECUTION :
 %pion_tirer_possible_silver([[4,4,cat,silver],[3,4,rabbit,gold],[4,5,rabbit,gold]],[4,4,cat,silver],X).
 %pion_tirer_possible_silver([[4,4,cat,silver],[3,4,rabbit,silver],[4,5,rabbit,silver]],[4,4,cat,silver],X).
+%pion_tirer_possible_silver([[4,4,cat,silver],[3,4,rabbit,gold],[4,5,camel,gold]],[4,4,cat,silver],X).
+%pion_tirer_possible_silver([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[3,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],[3,7,cat,silver],X).
 
 
 
@@ -229,39 +440,6 @@ get_case([], (Ligne,Colonne), [Ligne,Colonne,-1, -1]).
 %get_case([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],(0,0),Res).
 
 
-%deplacement(Board,NvBoard,Depart,Arrive) :- NvBoard s unifie avec Board modifié, on modifie seulement les coordonnées d une pièce sans verification.
-
-deplacement([[A,B,C,D]|E], [[LigneA,ColonneA,C,D]|E], (A,B), (LigneA, ColonneA)):- !.
-deplacement([A|E], [A|R], (LigneD,ColonneD), (LigneA, ColonneA) ):- deplacement(E,R,(LigneD,ColonneD), (LigneA, ColonneA) ).
-
-%EXEMPLE EXECUTION :
-%deplacement([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]], Res, (1,1), (2,1)).
-
-
-%suppression d un pion du plateau lorsqu il est mangé.
-%PROTOTYPE : delete_pion(pion,board,R).
-%EXECUTION : delete_pion([0,0,rabbit,silver],[[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],R).
-
-delete_pion(_,[],_).
-delete_pion(X,[X|Q],R):- concat(_,Q,R),!.
-delete_pion(X,[T|Q],[T|R]):-delete_pion(X,Q,R).
-
-%liste des pions jouables ainsi que chaque coup possible. RETOURNE UNE LISTE À 2 ÉLÉMENTS : 1- la tête est un pion, 2- la queue est une liste de coups possibles pour ce pion.
-%RESULTAT exemple : R = [[[1, 0, camel, silver], [[2, 0]]], [[1, 1, cat, silver], [[2, 1]]], [[1, 2, rabbit, silver], [[2, 2]]], [[1, 3, dog, silver], [[2, 3]]], [[1, 4, rabbit|...], [[2|...]]], [[1, 5|...], [[...|...]]], [[1|...], [...]], [[...|...]|...], [...|...]|...].
-%PROTOTYPE : liste_coup(Board,BoardTemp,R).
-%EXECUTION :liste_coup([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],[[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],R).
-
-liste_coup(_,[],[]).
-liste_coup(Board,[[X,Y,_,_]|Q],R):- \+setof([X1,Y1],deplacement_possible(Board,[[X,Y],[X1,Y1]]),_),liste_coup(Board,Q,R),!.
-liste_coup(Board,[[X,Y,T,J]|Q],R):- setof([X1,Y1],deplacement_possible(Board,[[X,Y],[X1,Y1]]),Res),concat([[[X,Y,T,J],Res]],R1,R),liste_coup(Board,Q,R1).
-
-%mise à jour du board après avoir déplacé un pion. 
-%PROTOTYPE : maj_board(Board,P,X,Y,R). p est un pion avant de délplacement, X et Y sont les nouvelles coordonnées de ce pion et R est la nouvelle board mise à jour.
-%EXECUTION : maj_board([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],[0,0,rabbit,silver],1,1,R).
-
-maj_board(Board,[X1,Y1,T,J],X,Y,R):- delete_pion([X1,Y1,T,J],Board,R1),concat([[X,Y,T,J]],R1,R).
-
-
 
 %plus_fort(type1,type2) --> est-ce que le pion de type 1 est plus fort que le pion de type 2.
 plus_fort(cat,rabbit).
@@ -279,3 +457,23 @@ plus_fort(elephant,dog).
 plus_fort(camel,horse).
 plus_fort(elephant,horse).
 plus_fort(elephant,camel).
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%	Prédicats Autres et Tests			%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%Test : Un test pour voir si get_moves marche (envoie juste à l'application les 4 premiers mouvements déterminés, risque de conflits et bug) 
+%get_moves(Moves, Gamestate, Board):- tout_deplacement_possible_silver(Board, Board, Res), concat([[[A,B],[C,D]],[[E,F],[G,H]],[[I,J],[K,L]],[[M,N],[O,P]]],Q,Res), Moves = [[[A,B],[C,D]],[[E,F],[G,H]],[[I,J],[K,L]],[[M,N],[O,P]]].
+
+
+
+%liste des pions jouables ainsi que chaque coup possible. RETOURNE UNE LISTE À 2 ÉLÉMENTS : 1- la tête est un pion, 2- la queue est une liste de coups possibles pour ce pion.
+%RESULTAT exemple : R = [[[1, 0, camel, silver], [[2, 0]]], [[1, 1, cat, silver], [[2, 1]]], [[1, 2, rabbit, silver], [[2, 2]]], [[1, 3, dog, silver], [[2, 3]]], [[1, 4, rabbit|...], [[2|...]]], [[1, 5|...], [[...|...]]], [[1|...], [...]], [[...|...]|...], [...|...]|...].
+%PROTOTYPE : liste_coup(Board,BoardTemp,R).
+%EXECUTION :liste_coup([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],[[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],R).
+
+liste_coup(_,[],[]).
+liste_coup(Board,[[X,Y,_,_]|Q],R):- \+setof([X1,Y1],deplacement_possible(Board,[[X,Y],[X1,Y1]]),_),liste_coup(Board,Q,R),!.
+liste_coup(Board,[[X,Y,T,J]|Q],R):- setof([X1,Y1],deplacement_possible(Board,[[X,Y],[X1,Y1]]),Res),concat([[[X,Y,T,J],Res]],R1,R),liste_coup(Board,Q,R1).
+
