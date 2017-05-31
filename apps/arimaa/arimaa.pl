@@ -1,6 +1,10 @@
-%:- module(bot,
-%      [  get_moves/3
-%      ]).
+:- module(bot,
+      [  get_moves/3
+      ]).
+	
+:- dynamic score/1.
+
+:- dynamic actionMaxScore/1.
 	
 % A few comments but all is explained in README of github
 
@@ -109,53 +113,92 @@ element(X, [_|Q]):- element(X,Q).
 
 get_moves(Moves, Gamestate, Board):- recup_meilleurs_coups(Board, Gamestate, 4, 0, Moves).
 
-recup_meilleurs_coups(Board, Gamestate, I, K, Res) :- I > K, action_tour_silver(Board, I, Consom, TmpRes), update_board(Board, NvBoard, Gamestate, NvGamestate, TmpRes), NvI is I - Consom, recup_meilleurs_coups(NvBoard, NvGamestate, NvI, K, TRes), concat(TmpRes, TRes, Res).
-recup_meilleurs_coups(_,_,I,K):- I = K. 
+%get_moves(Moves, [silver, []],[[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]]).
 
 
+recup_meilleurs_coups(Board, Gamestate, I, K, Res) :- 
+	I > K, 
+	action_tour_silver(Board, Gamestate, I, Consom, TmpRes), 
+	update_board(Board, NvBoard, Gamestate, NvGamestate, TmpRes), 
+	NvI is I - Consom, 
+	recup_meilleurs_coups(NvBoard, NvGamestate, NvI, K, TRes), 
+	concat(TmpRes, TRes, Res), !.
 
-action_tour_silver(Board, Act, Consom, Res):-
-	Act > 1,
-	tout_deplacement_possible_silver(Board, Board, ResDep), 
-	score_tout_deplacement_silver(Board, ResDep, ResDepScore), 
-	tout_pousser_possible_silver(Board, Board, ResPou), 
-	score_tout_pousser_silver(Board, ResPou, ResPouScore), 
-	tout_tirer_possible_silver(Board, Board, ResTir), 
-	score_tout_tirer_silver(Board, ResTir, ResTirScore), 
-	meilleur_action(ResDepScore, Res1),
-	meilleur_action(ResPouScore, Res2),
-	meilleur_action(ResTirScore, Res3),
-	meilleur_action(Res1, Res2, Res3, Consom, Res).
 	
-action_tour_silver(Board, 1, 1, Res):-
+recup_meilleurs_coups(_,_,I,K, []):- I = K. 
+
+%recup_meilleurs_coups([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],[silver, []],4,0,Res).
+
+action_tour_silver(Board, Gamestate, Act, Consom, Res):-
+	Act > 1,
+	tout_deplacement_possible_silver(Board, Board, ResDep),
+% write('DEPLACEMENT:'),
+% write(ResDep),	
+	score_tout_deplacement_silver(Board, Gamestate, ResDep, ResDepScore), 
+% write('DepScore'),
+% write(ResDepScore),
+	tout_pousser_possible_silver(Board, Board, ResPou), 
+% write('Pousser:'),
+% write(ResPou),	
+	score_tout_pousser_silver(Board, Gamestate, ResPou, ResPouScore), 
+% write('PouScore:'),
+% write(ResPouScore),	
+	tout_tirer_possible_silver(Board, Board, ResTir), 
+% write('Tirer:'),
+% write(ResTir),	
+	score_tout_tirer_silver(Board, Gamestate, ResTir, ResTirScore), 
+% write('TirScore:'),
+% write(ResTirScore),	
+	meilleur_action(ResDepScore, Res1),
+% write(Res1),
+	meilleur_action(ResPouScore, Res2),
+% write(Res2),
+	meilleur_action(ResTirScore, Res3),
+% write(Res3),
+	meilleur_action(Res1, Res2, Res3, Consom, Res), !.
+	% write('4').
+	
+action_tour_silver(Board, Gamestate, 1, 1, Res):-
 	tout_deplacement_possible_silver(Board, Board, ResDep), 
-	score_tout_deplacement_silver(Board, ResDep, ResDepScore), 
+	score_tout_deplacement_silver(Board, Gamestate, ResDep, ResDepScore), 
 	meilleur_action(ResDepScore, [_|Res]).
 
+%action_tour_silver([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],[silver,[]], 4, Consom, Res). 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %			Predicats controle Score			%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-score_tout_deplacement_silver(_, [], []).
-score_tout_deplacement_silver(Board, [T|Q], ResDepScore):- score_deplacement_silver(Board, T, ResScore), score_tout_deplacement_silver(Board, Q, TmpRes), concat([[ResScore|T]], TmpRes, ResDepScore).
+score_tout_deplacement_silver(_, _, [], []):- !.
+score_tout_deplacement_silver(Board, Gamestate, [T|Q], ResDepScore):- score_deplacement_silver(Board, Gamestate, T, ResScore), score_tout_deplacement_silver(Board, Gamestate, Q, TmpRes), concat([[ResScore|[T]]], TmpRes, ResDepScore).
 
-score_tout_pousser_silver(_, [], []).
-score_tout_pousser_silver(Board, [T|Q], ResDepScore):- score_pousser_silver(Board, T, ResScore), score_tout_pousser_silver(Board, Q, TmpRes), concat([[ResScore|T]], TmpRes, ResDepScore).
-
-score_tout_tirer_silver(_, [], []).
-score_tout_tirer_silver(Board, [T|Q], ResDepScore):- score_tirer_silver(Board, T, ResScore), score_tout_tirer_silver(Board, Q, TmpRes), concat([[ResScore|T]], TmpRes, ResDepScore).
+%score_tout_deplacement_silver([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]], [silver, []], [[[1, 0], [2, 0]], [[1, 1], [2, 1]], [[1, 2], [2, 2]], [[1, 3], [2, 3]], [[1, 4], [2, 4]], [[1, 5], [2, 5]], [[1, 6], [2, 6]]], ResDepScore).
+%tout_deplacement_possible_silver([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]], [[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],Res).
 
 
-score_deplacement_silver(Board, Deplacement, ScoreDep):- creation_score(0), cycle_test_deplacement_silver(Board,Deplacement), score(ScoreDep).
+score_tout_pousser_silver(_, _, [], []):- !.
+score_tout_pousser_silver(Board, Gamestate, [T|Q], ResDepScore):- score_pousser_silver(Board, Gamestate, T, ResScore), score_tout_pousser_silver(Board, Gamestate, Q, TmpRes), concat([[ResScore|[T]]], TmpRes, ResDepScore).
 
-score_pousser_silver(Board, Pousser, ScoreDep):- creation_score(0), cycle_test_pousser_silver(Board,Pousser), score(ScoreDep).
-
-score_tirer_silver(Board, Tirer, ScoreDep):- creation_score(0), cycle_test_tirer_silver(Board,Tirer), score(ScoreDep).
-
+%score_tout_pousser_silver([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]], [silver, []],  [[[[2, 7], [2, 6]], [[1, 7], [2, 7]]], [[[2, 7], [3, 7]], [[1, 7], [2, 7]]]], ResDepScore).
 
 
+score_tout_tirer_silver(_, _, [], []):- !.
+score_tout_tirer_silver(Board, Gamestate, [T|Q], ResDepScore):- score_tirer_silver(Board, Gamestate, T, ResScore), score_tout_tirer_silver(Board, Gamestate, Q, TmpRes), concat([[ResScore|[T]]], TmpRes, ResDepScore).
 
+%score_tout_tirer_silver([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]], [silver, []],  [[[[3, 7], [3, 6]], [[2, 7], [3, 7]]], [[[3, 7], [4, 7]], [[2, 7], [3, 7]]]], ResDepScore).
+
+
+
+score_deplacement_silver(Board, Gamestate, Deplacement, ScoreDep):- creation_score(0), cycle_test_deplacement_silver(Board,Gamestate, Deplacement), score(ScoreDep).
+
+%score_deplacement_silver([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]], [silver, []],[[1, 0], [2, 0]], Score).
+
+score_pousser_silver(Board,Gamestate, Pousser, ScoreDep):- creation_score(0), cycle_test_pousser_silver(Board, Gamestate, Pousser), score(ScoreDep).
+
+score_tirer_silver(Board,Gamestate, Tirer, ScoreDep):- creation_score(0), cycle_test_tirer_silver(Board, Gamestate, Tirer), score(ScoreDep).
+
+
+meilleur_action([], []).
 meilleur_action([T|Q], Res):- retractall(actionMaxScore(_)), asserta(actionMaxScore(T)), choix_meilleur_action(Q), actionMaxScore(Res), !.
 choix_meilleur_action([]).
 choix_meilleur_action([[Score|Action]|Q]):- actionMaxScore([A|_]), Score > A, retractall(actionMaxScore(_)), asserta(actionMaxScore([Score|Action])), choix_meilleur_action(Q).
@@ -163,13 +206,22 @@ choix_meilleur_action([[Score|_]|Q]):- actionMaxScore([A|_]), Score =< A, choix_
 
 %meilleur_action([[0,[[3,2],[4,2]]],[-9,[[6,2],[6,3]]],[59,[[6,2],[7,2]]],[23,[[5,2],[6,2]]]], Res).
 
-meilleur_action([Sc1|A1], [Sc2|[A2]], [Sc3|[A3]], 1, A1):- Sc1 >= Sc2, Sc1 >= Sc3, !.
-meilleur_action([Sc1|A1], [Sc2|[A2]], [Sc3|[A3]], 2, A2):- Sc2 >= Sc1, Sc2 >= Sc3, !.
-meilleur_action([Sc1|A1], [Sc2|[A2]], [Sc3|[A3]], 2, A3):- Sc3 >= Sc2, Sc3 >= Sc1.
+
+meilleur_action([_|A1], [], [], A1):- !.
+meilleur_action([], [_|[A2]], [], 2, A2):- !.
+meilleur_action([], [], [_|[A3]], 2, A3):- !.
+meilleur_action([Sc1|A1], [], [Sc3|[_]], 2, A1):- Sc1 >= Sc3, !.
+meilleur_action([Sc1|_], [Sc2|[A2]], [], 2, A2):- Sc2 >= Sc1, !.
+meilleur_action([Sc1|A1], [Sc2|[_]], [], 1, A1):- Sc1 >= Sc2, !.
+meilleur_action([], [Sc2|_], [Sc3|[A3]], 2, A3):- Sc3 >= Sc2, !.
+meilleur_action([Sc1|_], [], [Sc3|[A3]], 2, A3):- Sc3 >= Sc1, !.
+meilleur_action([], [Sc2|[A2]], [Sc3|_], 2, A2):- Sc2 >= Sc3, !.
+meilleur_action([Sc1|A1], [Sc2|[_]], [Sc3|[_]], 1, A1):- Sc1 >= Sc2, Sc1 >= Sc3, !.
+meilleur_action([Sc1|_], [Sc2|[A2]], [Sc3|[_]], 2, A2):- Sc2 >= Sc1, Sc2 >= Sc3, !.
+meilleur_action([Sc1|_], [Sc2|[_]], [Sc3|[A3]], 2, A3):- Sc3 >= Sc2, Sc3 >= Sc1.
 
 %meilleur_action([-9,[[6,2],[6,3]]],[6, [[[2, 7], [3, 7]], [[1, 7], [2, 7]]]],[5, [[[3, 7], [4, 7]], [[2, 7], [3, 7]]]], Consom, Res ).
-
-
+%meilleur_action([5,[[1,0],[2,0]]],[0,[[[2,7],[2,6]],[[1,7],[2,7]]]],[], Consom, A).
 
 
 creation_score(Score):- retractall(score(_)), asserta(score(Score)).
@@ -182,8 +234,29 @@ soustraction_score(Valeur):- score(TmpScore), retractall(score(_)), Score is Tmp
 % 	Prédicats Cycles de tests qui modifient le score	%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+cycle_test_deplacement_silver(Board, Gamestate, [[Xdepart,Ydepart], [Xarrive,Yarrive]]):- 
+	get_case(Board, (Xdepart,Ydepart), Pion),
+	update_board(Board, NvBoard, Gamestate, NvGamestate, [[[Xdepart,Ydepart], [Xarrive,Yarrive]]]),
+	test_deplacement_victoire((Xarrive,Yarrive), Pion),
+	test_deplacement_suicide(NvBoard,(Xarrive, Yarrive)),
+	test_deplacement_direction([[Xdepart,Ydepart], [Xarrive,Yarrive]]).
+
+%cycle_test_deplacement_silver([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]], [silver, []],[[1, 0], [2, 0]]).	
+
+test_deplacement_victoire((7,_), [_,_,rabbit,silver]):- addition_score(1000), !.
+test_deplacement_victoire(_,_).
+
+test_deplacement_suicide(Board, (X, Y)):- get_case(Board, (X,Y), [X,Y,A,B]), A = -1 ,B = -1, soustraction_score(100), !.
+test_deplacement_suicide(_,_).
+
+%test_deplacement_suicide([[2,2,rabbit,silver]],(2, 2)).
+
+test_deplacement_direction([[Xdepart,_], [Xarrive,_]]):- Xdepart is Xarrive-1, addition_score(5), !.
+test_deplacement_direction(_).
 	
-	
+cycle_test_pousser_silver(_,_,_).
+
+cycle_test_tirer_silver(_,_,_).
 	
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
 % test consequences d'actions
@@ -235,7 +308,7 @@ mort(Board, (2,2)):- voisins(Board, (2,2), Res), get_case(Board, (2,2), [2,2,_,J
 mort(Board, (2,5)):- voisins(Board, (2,5), Res), get_case(Board, (2,5), [2,5,_,Joueur]), \+element([_,_,_,Joueur], Res), !.
 mort(Board, (5,2)):- voisins(Board, (5,2), Res), get_case(Board, (5,2), [5,2,_,Joueur]), \+element([_,_,_,Joueur], Res), !.
 mort(Board, (5,5)):- voisins(Board, (5,5), Res), get_case(Board, (5,5), [5,5,_,Joueur]), \+element([_,_,_,Joueur], Res), !.
-mort(Board,_):- fail. 
+mort(_,_):- fail. 
 
 %mort([[2,2,rabbit,silver]], (2,2)).
 %mort([[5,5,rabbit,silver], [6,5,rabbit,gold]], (5,5)).
