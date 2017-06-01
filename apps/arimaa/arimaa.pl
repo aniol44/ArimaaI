@@ -274,7 +274,22 @@ test_deplacement_suicide(_,_).
 test_deplacement_direction([[Xdepart,_], [Xarrive,_]]):- Xdepart is Xarrive-1, addition_score(5), !.
 test_deplacement_direction(_).
 	
-cycle_test_pousser_silver(_,_,_).
+cycle_test_pousser_silver(Board, Gamestate, [[[XDennemi, YDennemi], [XAennemi, YAennemi]], [[XDallie, YDallie], [XDennemi, YDennemi]]]):-
+	get_case(Board, (XDennemi,YDennemi), PionEnnemi),
+	get_case(Board, (XDallie,YDallie), PionAllie),
+	update_board(Board, NvBoard, Gamestate, NvGamestate, [[[XDennemi, YDennemi], [XAennemi, YAennemi]], [[XDallie, YDallie], [XDennemi, YDennemi]]]),
+	% write(Gamestate),
+	% write(NvGamestate),
+	test_tuer_ennemi(Gamestate, NvGamestate).
+
+%cycle_test_pousser_silver([[2,3,rabbit, gold], [1,3,dog,silver]], [silver, []], [[[2,3],[2,2]],[[1,3],[2,3]]]).
+	
+test_tuer_ennemi([silver| [Q]], [silver| [[[_,_,_,gold]|Q]]]):- addition_score(100), !.
+test_tuer_ennemi(_,_).
+
+
+%test_tuer_ennemi([silver, []], [silver,[[2,2,rabbit,gold]]]).
+%test_tuer_ennemi([silver, [[5,5,rabbit,silver]]], [silver,[[2,2,rabbit,gold],[5,5,rabbit,silver]]]).
 
 cycle_test_tirer_silver(_,_,_).
 	
@@ -320,6 +335,7 @@ update_board(Board, NvBoard, Gamestate, NvGamestate, [[[Xdepart, Ydepart], [Xarr
 
 %update_board([[1,2,elephant,silver],[0,3,horse,silver],[0,4,rabbit,silver],[0,5,dog,silver],[0,6,camel,silver],[0,7,rabbit,silver],[2,2,dog,silver],[1,3,rabbit,silver],[1,4,cat,silver],[1,5,cat,silver],[1,6,horse,silver],[1,7,rabbit,silver],[2,0,rabbit,silver],[2,1,rabbit,silver],[2,3,camel,gold],[2,4,elephant,gold],[3,0,rabbit,silver],[3,1,rabbit,silver],[4,0,rabbit,gold],[4,6,rabbit,gold],[6,1,cat,gold],[6,2,dog,gold],[6,5,rabbit,gold],[6,7,cat,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,rabbit,gold],[7,4,rabbit,gold],[7,5,horse,gold],[7,6,horse,gold],[7,7,dog,gold]], NvBoard, [silver, []], NvGamestate,  [[[2, 2], [3, 2]]]).
 
+%update_board([[2,3,rabbit, gold], [1,3,dog,silver]], NvBoard, [silver, []], NvGamestate, [[[2,3],[2,2]],[[1,3],[2,3]]]).
 
 maj_mort(Board,NvBoard,Gamestate,NvGamestate,(X,Y)):- mort(Board, (X,Y)), get_case(Board, (X,Y), Pion), delete_pion(Pion, Board, NvBoard), maj_gamestate(Pion, Gamestate, NvGamestate), !.
 maj_mort(Board, Board, Gamestate, Gamestate, _).
