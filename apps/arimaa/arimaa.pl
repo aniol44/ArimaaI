@@ -117,7 +117,9 @@ get_moves(Moves, Gamestate, Board):- recup_meilleurs_coups(Board, Gamestate, 4, 
 
 recup_meilleurs_coups(Board, Gamestate, I, K, Res) :- 
 	I > K, 
-	action_tour_silver(Board, Gamestate, I, Consom, TmpRes), 
+	action_tour_silver(Board, Gamestate, I, Consom, TmpRes),
+	% write('ACTION RESTANTE :'),
+	% write(I),
 	% write('BOARD:'),
 	% write(Board),
 	update_board(Board, NvBoard, Gamestate, NvGamestate, TmpRes), 
@@ -139,8 +141,8 @@ action_tour_silver(Board, Gamestate, Act, Consom, Res):-
 	tout_deplacement_possible_silver(Board, Board, ResDep),
 	% write('BOARD:'),
 	% write(Board),
- %write('DEPLACEMENT:'),
- %write(ResDep),	
+ % write('DEPLACEMENT:'),
+ % write(ResDep),	
 	score_tout_deplacement_silver(Board, Gamestate, ResDep, ResDepScore), 
   % write('DepScore'),
   % write(ResDepScore),
@@ -226,7 +228,7 @@ choix_meilleur_action([[Score|_]|Q]):- actionMaxScore([A|_]), Score =< A, choix_
 meilleur_action([_|A1], [], [], 1, A1):- !.
 meilleur_action([], [_|[A2]], [], 2, A2):- !.
 meilleur_action([], [], [_|[A3]], 2, A3):- !.
-meilleur_action([Sc1|A1], [], [Sc3|[_]], 2, A1):- Sc1 >= Sc3, !.
+meilleur_action([Sc1|A1], [], [Sc3|[_]], 1, A1):- Sc1 >= Sc3, !.
 meilleur_action([Sc1|_], [Sc2|[A2]], [], 2, A2):- Sc2 >= Sc1, !.
 meilleur_action([Sc1|A1], [Sc2|[_]], [], 1, A1):- Sc1 >= Sc2, !.
 meilleur_action([], [Sc2|_], [Sc3|[A3]], 2, A3):- Sc3 >= Sc2, !.
