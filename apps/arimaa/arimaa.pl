@@ -67,7 +67,6 @@
 %			- score pour un lapin allant vers le bas (score modifié selon que ce lapin est plus ou moins loin de la ligne 7) : +nombre (à définir)			
 %			- score pour un suicide dans trappe : -beaucoup (à définir)
 %			- score pour un pion allant se mettre dans l'état "freeze" : -nombre (à définir)
-%			- score pour un pion se déplacant près d'un pion plus fort : - nombre (à définir)
 %			- score pour un pion tuant un adversaire : +nombre (à définir)
 %			.
 %			.
@@ -255,9 +254,14 @@ soustraction_score(Valeur):- score(TmpScore), retractall(score(_)), Score is Tmp
 cycle_test_deplacement_silver(Board, Gamestate, [[Xdepart,Ydepart], [Xarrive,Yarrive]]):- 
 	get_case(Board, (Xdepart,Ydepart), Pion),
 	update_board(Board, NvBoard, Gamestate, NvGamestate, [[[Xdepart,Ydepart], [Xarrive,Yarrive]]]),
+	get_case(NvBoard, (Xarrive, Yarrive), NvPion),
 	test_deplacement_victoire((Xarrive,Yarrive), Pion),
-	test_deplacement_suicide(NvBoard,(Xarrive, Yarrive)),
-	test_deplacement_direction([[Xdepart,Ydepart], [Xarrive,Yarrive]]).
+	%test_deplacement_suicide(NvBoard,(Xarrive, Yarrive)),
+	test_suicide(Gamestate, NvGamestate),
+	test_deplacement_direction([[Xdepart,Ydepart], [Xarrive,Yarrive]]),
+	test_freeze(NvBoard, NvPion),
+	test_freeze_ennemi(Board,NvBoard,NvPion),
+	test_defreeze_ennemi(Board,NvBoard,NvPion).
 
 %cycle_test_deplacement_silver([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]], [silver, []],[[1, 0], [2, 0]]).	
 
@@ -266,8 +270,8 @@ test_deplacement_victoire(_,_).
 
 
 %à modifier car ne marche pas dans le cas où un pion qui empecher un autre de tomber bouge et donc le pion sur la trappe meurt --> il faut faire une comparaison entre les deux gamestates (si un silver est en plus alors --> suicide)
-test_deplacement_suicide(Board, (X, Y)):- get_case(Board, (X,Y), [X,Y,A,B]), A = -1 ,B = -1, soustraction_score(100), !.
-test_deplacement_suicide(_,_).
+%test_deplacement_suicide(Board, (X, Y)):- get_case(Board, (X,Y), [X,Y,A,B]), A = -1 ,B = -1, soustraction_score(100), !.
+%test_deplacement_suicide(_,_).
 
 %test_deplacement_suicide([[2,2,rabbit,silver]],(2, 2)).
 
@@ -280,18 +284,47 @@ cycle_test_pousser_silver(Board, Gamestate, [[[XDennemi, YDennemi], [XAennemi, Y
 	update_board(Board, NvBoard, Gamestate, NvGamestate, [[[XDennemi, YDennemi], [XAennemi, YAennemi]], [[XDallie, YDallie], [XDennemi, YDennemi]]]),
 	% write(Gamestate),
 	% write(NvGamestate),
-	test_tuer_ennemi(Gamestate, NvGamestate).
+	test_tuer_ennemi(Gamestate, NvGamestate),
+	test_suicide(Gamestate, NvGamestate).
 
 %cycle_test_pousser_silver([[2,3,rabbit, gold], [1,3,dog,silver]], [silver, []], [[[2,3],[2,2]],[[1,3],[2,3]]]).
 	
+
+cycle_test_tirer_silver(Board,Gamestate,[[[XDallie, YDallie], [XAallie, YAallie]], [[XDennemi, YDennemi], [XDallie, YDallie]]]):-
+	get_case(Board, (XDallie,YDallie), PionAllie),
+	get_case(Board, (XDennemi,YDennemi), PionEnnemi),
+	update_board(Board, NvBoard, Gamestate, NvGamestate,[[[XDallie, YDallie], [XAallie, YAallie]], [[XDennemi, YDennemi], [XDallie, YDallie]]] ),
+	test_tuer_ennemi(Gamestate, NvGamestate),
+	test_suicide(Gamestate, NvGamestate).
+	
+	
+%%%%%%TESTS%%%%%%%
+
 test_tuer_ennemi([silver| [Q]], [silver| [[[_,_,_,gold]|Q]]]):- addition_score(100), !.
 test_tuer_ennemi(_,_).
-
 
 %test_tuer_ennemi([silver, []], [silver,[[2,2,rabbit,gold]]]).
 %test_tuer_ennemi([silver, [[5,5,rabbit,silver]]], [silver,[[2,2,rabbit,gold],[5,5,rabbit,silver]]]).
 
-cycle_test_tirer_silver(_,_,_).
+test_suicide([silver| [Q]], [silver| [[[_,_,_,silver]|Q]]]):- soustraction_score(100), !.
+test_suicide(_,_).
+
+test_freeze(NvBoard, NvPion):- pion_freeze(NvBoard, NvPion), soustraction_score(10), !.
+test_freeze(_,_).
+
+test_freeze_ennemi(Board,NvBoard,[X,Y,_,_]):- Xtemp is X + 1, get_case(Board, (Xtemp,Y), [Xpion1,Ypion1,Type,gold]), \+pion_freeze(Board,[Xpion1,Ypion1,Type,gold]), pion_freeze(NvBoard,[Xpion1,Ypion1,Type,gold]), addition_score(10).
+test_freeze_ennemi(Board,NvBoard,[X,Y,_,_]):- Xtemp is X - 1, get_case(Board, (Xtemp,Y), [Xpion1,Ypion1,Type,gold]), \+pion_freeze(Board,[Xpion1,Ypion1,Type,gold]), pion_freeze(NvBoard,[Xpion1,Ypion1,Type,gold]), addition_score(10).
+test_freeze_ennemi(Board,NvBoard,[X,Y,_,_]):- Ytemp is Y + 1, get_case(Board, (X,Ytemp), [Xpion1,Ypion1,Type,gold]), \+pion_freeze(Board,[Xpion1,Ypion1,Type,gold]), pion_freeze(NvBoard,[Xpion1,Ypion1,Type,gold]), addition_score(10).
+test_freeze_ennemi(Board,NvBoard,[X,Y,_,_]):- Ytemp is Y - 1, get_case(Board, (X,Ytemp), [Xpion1,Ypion1,Type,gold]), \+pion_freeze(Board,[Xpion1,Ypion1,Type,gold]), pion_freeze(NvBoard,[Xpion1,Ypion1,Type,gold]), addition_score(10).
+test_freeze_ennemi(_,_,_).
+
+%test_freeze_ennemi([[2,4,rabbit,gold], [1,3,horse,silver]], [[2,4,rabbit,gold], [2,3,horse,silver]], [2,3,horse,silver]).
+
+test_defreeze_ennemi(Board,NvBoard,[X,Y,_,_]):- Xtemp is X + 1, get_case(Board, (Xtemp,Y), [Xpion1,Ypion1,Type,gold]), pion_freeze(Board,[Xpion1,Ypion1,Type,gold]), \+pion_freeze(NvBoard,[Xpion1,Ypion1,Type,gold]), soustraction_score(10).
+test_defreeze_ennemi(Board,NvBoard,[X,Y,_,_]):- Xtemp is X - 1, get_case(Board, (Xtemp,Y), [Xpion1,Ypion1,Type,gold]), pion_freeze(Board,[Xpion1,Ypion1,Type,gold]), \+pion_freeze(NvBoard,[Xpion1,Ypion1,Type,gold]), soustraction_score(10).
+test_defreeze_ennemi(Board,NvBoard,[X,Y,_,_]):- Ytemp is Y + 1, get_case(Board, (X,Ytemp), [Xpion1,Ypion1,Type,gold]), pion_freeze(Board,[Xpion1,Ypion1,Type,gold]), \+pion_freeze(NvBoard,[Xpion1,Ypion1,Type,gold]), soustraction_score(10).
+test_defreeze_ennemi(Board,NvBoard,[X,Y,_,_]):- Ytemp is Y - 1, get_case(Board, (X,Ytemp), [Xpion1,Ypion1,Type,gold]), pion_freeze(Board,[Xpion1,Ypion1,Type,gold]), \+pion_freeze(NvBoard,[Xpion1,Ypion1,Type,gold]), soustraction_score(10).
+test_defreeze_ennemi(_,_,_).
 	
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
 % test consequences d'actions
@@ -408,14 +441,14 @@ delete_pion(X,[T|Q],[T|R]):-delete_pion(X,Q,R).
 %pion_freeze(Board,Pion) --> indique si un pion est freeze (ne peut rien faire).
 
 pion_freeze(Board, [X,Y,TypeAllie,silver]):- voisins(Board, (X,Y), Res), element([_,_,TypeEnnemi,gold], Res), plus_fort(TypeEnnemi, TypeAllie), \+element([_,_,_,silver], Res).
-pion_freeze(Board, [X,Y,TypeAllie,gold]):- voisins(Board, (X,Y), Res), element([_,_,TypeEnnemi,silver], Res), plus_fort(TypeEnnemi, TypeAllie), \+element([_,_,_,silver], Res).
+pion_freeze(Board, [X,Y,TypeAllie,gold]):- voisins(Board, (X,Y), Res), element([_,_,TypeEnnemi,silver], Res), plus_fort(TypeEnnemi, TypeAllie), \+element([_,_,_,gold], Res).
 
 %EXEMPLE EXECUTION: 
 %pion_freeze([[4,4,rabbit,silver],[5,4,dog,gold]], [4,4,rabbit,silver] ).
 %pion_freeze([[4,4,camel,silver],[5,4,dog,gold]], [4,4,camel,silver] ).
 %pion_freeze([[4,4,camel,silver],[5,4,dog,gold],[3,4,elephant,gold]], [4,4,camel,silver] ).
 %pion_freeze([[4,4,rabbit,silver],[3,4,rabbit,silver],[5,4,dog,gold]], [4,4,rabbit,silver]).
-
+%pion_freeze([[2,4,rabbit,gold],[2,3,horse,silver]], [2,4,rabbit,gold]).
 
 
 %tout_deplacement_possible_silver(Board, TempBoard, Res) --> Res s unifie avec une liste de tous les deplacements possibles du joueur silver avec une profondeur de 1.
