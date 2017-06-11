@@ -267,10 +267,20 @@ cycle_test_deplacement_silver(Board, Gamestate, [[Xdepart,Ydepart], [Xarrive,Yar
 	test_deplacement_direction([[Xdepart,Ydepart], [Xarrive,Yarrive]]),
 	test_freeze(NvBoard, NvPion),
 	test_freeze_ennemi(Board,NvBoard,NvPion),
-	test_defreeze_ennemi(Board,NvBoard,NvPion),
+	test_defreeze_ennemi(Board,NvBoard,Pion),
+	% write('a '),
+	% write('REST'),
+	% write(Act),
+	score(S),
+	write('ScoreAvant:'),
+	write(S),
+	write(' '),
 	test_actions_suivantes(NvBoard,NvGamestate,NvPion,Act).
 
 %cycle_test_deplacement_silver([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]], [silver, []],[[1, 0], [2, 0]]).	
+%cycle_test_deplacement_silver([[0,2,rabbit,silver],[0,4,cat,silver],[0,5,elephant,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,1,rabbit,silver],[1,2,dog,silver],[1,4,rabbit,silver],[1,5,rabbit,silver],[1,7,dog,silver],[2,0,rabbit,silver],[2,1,horse,silver],[2,3,rabbit,silver],[2,7,elephant,gold],[3,6,cat,gold],[4,3,horse,silver],[4,4,rabbit,gold],[4,5,camel,gold],[4,6,cat,silver],[5,0,camel,silver],[5,1,rabbit,gold],[5,3,horse,gold],[5,6,rabbit,gold],[6,0,rabbit,gold],[6,2,dog,gold],[6,5,cat,gold],[7,0,rabbit,gold],[7,1,dog,gold],[7,2,rabbit,gold],[7,3,horse,gold],[7,5,rabbit,gold],[7,6,rabbit,gold]],[silver,[]],[[1,2],[2,2]], 3).
+%cycle_test_deplacement_silver([[0,2,rabbit,silver],[0,4,cat,silver],[0,5,elephant,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,1,rabbit,silver],[2,2,dog,silver],[1,4,rabbit,silver],[1,5,rabbit,silver],[1,7,dog,silver],[2,0,rabbit,silver],[2,1,horse,silver],[2,3,rabbit,silver],[2,7,elephant,gold],[3,6,cat,gold],[4,3,horse,silver],[4,4,rabbit,gold],[4,5,camel,gold],[4,6,cat,silver],[5,0,camel,silver],[5,1,rabbit,gold],[5,3,horse,gold],[5,6,rabbit,gold],[6,0,rabbit,gold],[6,2,dog,gold],[6,5,cat,gold],[7,0,rabbit,gold],[7,1,dog,gold],[7,2,rabbit,gold],[7,3,horse,gold],[7,5,rabbit,gold],[7,6,rabbit,gold]],[silver,[]],[[2,2],[1,2]], 2).
+
 
 test_deplacement_victoire((7,_), [_,_,rabbit,silver]):- addition_score(1000), !.
 test_deplacement_victoire(_,_).
@@ -294,6 +304,7 @@ cycle_test_pousser_silver(Board, Gamestate, [[[XDennemi, YDennemi], [XAennemi, Y
 	% write(NvGamestate),
 	test_tuer_ennemi(Gamestate, NvGamestate),
 	test_suicide(Gamestate, NvGamestate),
+	% write('b '),
 	test_actions_suivantes(NvBoard,NvGamestate,NvPionAllie,Act).
 
 %cycle_test_pousser_silver([[2,3,rabbit, gold], [1,3,dog,silver]], [silver, []], [[[2,3],[2,2]],[[1,3],[2,3]]]).
@@ -306,6 +317,7 @@ cycle_test_tirer_silver(Board,Gamestate,[[[XDallie, YDallie], [XAallie, YAallie]
 	get_case(NvBoard, (XAallie, YAallie), NvPionAllie),
 	test_tuer_ennemi(Gamestate, NvGamestate),
 	test_suicide(Gamestate, NvGamestate),
+	% write('c '),
 	test_actions_suivantes(NvBoard,NvGamestate,NvPionAllie,Act).
 	
 	
@@ -371,7 +383,7 @@ test_actions_suivantes(NvBoard,NvGamestate,NvPion,Act):- test_action_suivante(Nv
 %test_actions_suivantes([[1,2,rabbit,silver],[1,7,cat,silver],[2,2,rabbit,silver],[2,3,rabbit,silver],[2,6,rabbit,silver],[2,7,dog,silver],[3,0,horse,silver],[4,1,rabbit,silver],[3,2,horse,silver],[3,3,dog,silver],[3,4,elephant,silver],[3,5,rabbit,silver],[3,6,rabbit,silver],[4,4,rabbit,silver],[4,6,cat,silver],[5,1,camel,silver],[6,0,rabbit,gold],[6,1,camel,gold],[6,4,rabbit,gold],[6,5,rabbit,gold],[7,0,horse,gold],[7,1,rabbit,gold],[7,2,horse,gold],[7,4,elephant,gold],[7,5,cat,gold],[7,6,dog,gold],[7,7,dog,gold]],[silver,[[rabbit,gold],[rabbit,gold],[rabbit,gold],[rabbit,gold],[cat,gold]]],[4,1,rabbit,silver]).
 %test_action_suivante([[1,2,rabbit,silver],[1,7,cat,silver],[2,2,rabbit,silver],[2,3,rabbit,silver],[2,6,rabbit,silver],[2,7,dog,silver],[3,0,horse,silver],[4,1,rabbit,silver],[3,2,horse,silver],[3,3,dog,silver],[3,4,elephant,silver],[3,5,rabbit,silver],[3,6,rabbit,silver],[4,4,rabbit,silver],[4,6,cat,silver],[5,1,camel,silver],[6,0,rabbit,gold],[6,1,camel,gold],[6,4,rabbit,gold],[6,5,rabbit,gold],[7,0,horse,gold],[7,1,rabbit,gold],[7,2,horse,gold],[7,4,elephant,gold],[7,5,cat,gold],[7,6,dog,gold],[7,7,dog,gold]],[silver,[[rabbit,gold],[rabbit,gold],[rabbit,gold],[rabbit,gold],[cat,gold]]],[4,1,rabbit,silver],3, Res).
 
-test_action_suivante(_,_,[_,_,-1,-1],_, 0).
+test_action_suivante(_,_,[_,_,-1,-1],_, 0):- !.
 %test_action_suivante(Board, _, Pion, _,0) :- write(Pion), write(Board), pion_freeze(Board, Pion), write('g'), !.
 test_action_suivante(NvBoard,NvGamestate,NvPion,Act, Res) :- 
 	action_pion_silver(NvBoard, NvGamestate, Act, NvPion, Res).
@@ -382,24 +394,49 @@ action_pion_silver(Board, Gamestate, Act, Pion, Res):-
 	Act > 1,
 	ActDep is Act-1,
 	ActPou is Act-2,
+	% write(' f '),
 	liste_pion_deplacement_possible_silver(Board, Pion, ResDep),	
+	% tout_deplacement_possible_silver(Board,Board,ResDep),
 	score_pion_deplacement_silver(Board, Gamestate, ResDep, ResDepScore, ActDep), 
-	pion_pousser_possible_silver(Board, Pion, ResPou), 
+	% write(' g '),
+	% write(Board),
+	% write(Pion),
+	liste_pion_pousser_possible_silver(Board, Pion, ResPou), 
+	% tout_pousser_possible_silver(Board,Board,ResPou),
+	% write(' j '),
 	score_pion_pousser_silver(Board, Gamestate, ResPou, ResPouScore, ActPou), 	
-	pion_tirer_possible_silver(Board, Pion, ResTir), 	
+	% write(' h '),
+	liste_pion_tirer_possible_silver(Board, Pion, ResTir), 	
+	% tout_tirer_possible_silver(Board,Board,ResTir),
 	score_pion_tirer_silver(Board, Gamestate, ResTir, ResTirScore, ActPou), 
+	% write(' i '),
 	meilleur_action(ResDepScore, Res1),
+	% write(' n '),
 	meilleur_action(ResPouScore, Res2),
+	% write(' m '),
 	meilleur_action(ResTirScore, Res3),
-	meilleur_score(Res1, Res2, Res3, Consom, Res), !.
+	% write(' l '),
+	meilleur_score(Res1, Res2, Res3, Consom, Res), !. 
+	% write(' k '), !.
 	
 action_pion_silver(Board, Gamestate, 1, Pion, Res):-
+	% tout_deplacement_possible_silver(Board,Board,ResDep),
 	liste_pion_deplacement_possible_silver(Board, Pion, ResDep), 
+	% write('z '),
 	score_pion_deplacement_silver(Board, Gamestate, ResDep, ResDepScore, 0), 
+	% write('x '),
 	meilleur_score(ResDepScore, Res).
+	% write('y ').
 	
-liste_pion_deplacement_possible_silver(Board, Pion, ResDep):- pion_deplacement_possible_silver(Board, Pion, ResDep).
+liste_pion_deplacement_possible_silver(Board, Pion, ResDep):- pion_deplacement_possible_silver(Board, Pion, ResDep), !.
 liste_pion_deplacement_possible_silver(_, _, []).
+
+liste_pion_pousser_possible_silver(Board, Pion, ResPou):- pion_pousser_possible_silver(Board, Pion, ResPou), !.
+liste_pion_pousser_possible_silver(_, _, []).
+
+liste_pion_tirer_possible_silver(Board, Pion, ResTir):- pion_tirer_possible_silver(Board, Pion, ResTir), !.
+liste_pion_tirer_possible_silver(_, _, []).
+
 	
 score_pion_deplacement_silver(_, _, [], [], _):- !.
 score_pion_deplacement_silver(Board, Gamestate, [T|Q], ResDepScore, Act):- test_score_deplacement_silver(Board, Gamestate, T, ResScore, Act), score_pion_deplacement_silver(Board, Gamestate, Q, TmpRes, Act), concat([[ResScore|[T]]], TmpRes, ResDepScore).
@@ -425,8 +462,31 @@ profond_cycle_test_deplacement_silver(Board, Gamestate, [[Xdepart,Ydepart], [Xar
 	test_deplacement_direction([[Xdepart,Ydepart], [Xarrive,Yarrive]], Res3),
 	test_freeze(NvBoard, NvPion, Res4),
 	test_freeze_ennemi(Board,NvBoard,NvPion, Res5),
-	test_defreeze_ennemi(Board,NvBoard,NvPion, Res6),
+	test_defreeze_ennemi(Board,NvBoard, Pion, Res6),
 	test_action_suivante(NvBoard,NvGamestate,NvPion,Act, Res7),
+	write('D:'),
+	write(Xdepart),
+	write(','),
+	write(Ydepart),
+	write('/'),
+	write(Xarrive),
+	write(','),
+	write(Yarrive),
+	write('S:'),
+	write(Res1),
+	write(' '),
+	write(Res2),
+	write(' '),
+	write(Res3),
+	write(' '),
+	write(Res4),
+	write(' '),
+	write(Res5),
+	write(' '),
+	write(Res6),
+	write(' '),
+	write(Res7),
+	write(' '),
 	Score is Res1 + Res2 + Res3 + Res4 + Res5 + Res6 + Res7.
 
 	
@@ -472,17 +532,24 @@ test_freeze_ennemi(Board,NvBoard,[X,Y,_,_], 10):- Ytemp is Y + 1, get_case(Board
 test_freeze_ennemi(Board,NvBoard,[X,Y,_,_], 10):- Ytemp is Y - 1, get_case(Board, (X,Ytemp), [Xpion1,Ypion1,Type,gold]), \+pion_freeze(Board,[Xpion1,Ypion1,Type,gold]), pion_freeze(NvBoard,[Xpion1,Ypion1,Type,gold]).
 test_freeze_ennemi(_,_,_,0).
 
+%test_freeze_ennemi([[0,1,rabbit,silver],[0,2,rabbit,silver],[0,5,horse,silver],[0,6,horse,silver],[0,7,rabbit,silver],[1,2,rabbit,silver],[1,3,rabbit,silver],[1,5,cat,silver],[1,6,rabbit,silver],[2,7,rabbit,silver],[3,0,cat,gold],[3,1,dog,silver],[3,4,rabbit,silver],[3,5,elephant,silver],[4,2,dog,silver],[4,4,elephant,gold],[6,4,rabbit,gold],[6,6,horse,gold],[6,7,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,5,rabbit,gold]], [[0, 1, rabbit, silver], [0, 2, rabbit, silver], [0, 5, horse, silver], [0, 6, horse, silver], [0, 7, rabbit, silver], [1, 2, rabbit, silver], [1, 3, rabbit, silver], [1, 5, cat, silver], [1, 6, rabbit, silver], [2, 7, rabbit, silver], [3, 0, cat, gold], [2, 1, dog, silver], [3, 4, rabbit, silver], [3, 5, elephant, silver], [4, 2, dog, silver], [4, 4, elephant, gold], [6, 4, rabbit, gold], [6, 6, horse, gold], [6, 7, rabbit, gold], [7, 1, rabbit, gold], [7, 2, rabbit, gold], [7, 5, rabbit, gold]],[2, 1, dog, silver], Res).
+%update_board([[0,1,rabbit,silver],[0,2,rabbit,silver],[0,5,horse,silver],[0,6,horse,silver],[0,7,rabbit,silver],[1,2,rabbit,silver],[1,3,rabbit,silver],[1,5,cat,silver],[1,6,rabbit,silver],[2,7,rabbit,silver],[3,0,cat,gold],[3,1,dog,silver],[3,4,rabbit,silver],[3,5,elephant,silver],[4,2,dog,silver],[4,4,elephant,gold],[6,4,rabbit,gold],[6,6,horse,gold],[6,7,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,5,rabbit,gold]],NvBoard,[silver,[[dog,gold],[rabbit,gold],[dog,gold],[camel,silver],[rabbit,gold],[cat,silver],[camel,gold],[cat,gold],[horse,gold],[rabbit,gold]]], NvGamestate, [[[3,1],[2,1]]]).
+
+
 test_defreeze_ennemi(Board,NvBoard,[X,Y,_,_], -10):- Xtemp is X + 1, get_case(Board, (Xtemp,Y), [Xpion1,Ypion1,Type,gold]), pion_freeze(Board,[Xpion1,Ypion1,Type,gold]), \+pion_freeze(NvBoard,[Xpion1,Ypion1,Type,gold]).
 test_defreeze_ennemi(Board,NvBoard,[X,Y,_,_], -10):- Xtemp is X - 1, get_case(Board, (Xtemp,Y), [Xpion1,Ypion1,Type,gold]), pion_freeze(Board,[Xpion1,Ypion1,Type,gold]), \+pion_freeze(NvBoard,[Xpion1,Ypion1,Type,gold]).
 test_defreeze_ennemi(Board,NvBoard,[X,Y,_,_], -10):- Ytemp is Y + 1, get_case(Board, (X,Ytemp), [Xpion1,Ypion1,Type,gold]), pion_freeze(Board,[Xpion1,Ypion1,Type,gold]), \+pion_freeze(NvBoard,[Xpion1,Ypion1,Type,gold]).
 test_defreeze_ennemi(Board,NvBoard,[X,Y,_,_], -10):- Ytemp is Y - 1, get_case(Board, (X,Ytemp), [Xpion1,Ypion1,Type,gold]), pion_freeze(Board,[Xpion1,Ypion1,Type,gold]), \+pion_freeze(NvBoard,[Xpion1,Ypion1,Type,gold]).
 test_defreeze_ennemi(_,_,_,0).
 	
+%test_defreeze_ennemi([[0,1,rabbit,silver],[0,2,rabbit,silver],[0,5,horse,silver],[0,6,horse,silver],[0,7,rabbit,silver],[1,2,rabbit,silver],[1,3,rabbit,silver],[1,5,cat,silver],[1,6,rabbit,silver],[2,7,rabbit,silver],[3,0,cat,gold],[3,1,dog,silver],[3,4,rabbit,silver],[3,5,elephant,silver],[4,2,dog,silver],[4,4,elephant,gold],[6,4,rabbit,gold],[6,6,horse,gold],[6,7,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,5,rabbit,gold]], [[0, 1, rabbit, silver], [0, 2, rabbit, silver], [0, 5, horse, silver], [0, 6, horse, silver], [0, 7, rabbit, silver], [1, 2, rabbit, silver], [1, 3, rabbit, silver], [1, 5, cat, silver], [1, 6, rabbit, silver], [2, 7, rabbit, silver], [3, 0, cat, gold], [2, 1, dog, silver], [3, 4, rabbit, silver], [3, 5, elephant, silver], [4, 2, dog, silver], [4, 4, elephant, gold], [6, 4, rabbit, gold], [6, 6, horse, gold], [6, 7, rabbit, gold], [7, 1, rabbit, gold], [7, 2, rabbit, gold], [7, 5, rabbit, gold]],[2, 1, dog, silver], Res).
+%get_case([[0,1,rabbit,silver],[0,2,rabbit,silver],[0,5,horse,silver],[0,6,horse,silver],[0,7,rabbit,silver],[1,2,rabbit,silver],[1,3,rabbit,silver],[1,5,cat,silver],[1,6,rabbit,silver],[2,7,rabbit,silver],[3,0,cat,gold],[3,1,dog,silver],[3,4,rabbit,silver],[3,5,elephant,silver],[4,2,dog,silver],[4,4,elephant,gold],[6,4,rabbit,gold],[6,6,horse,gold],[6,7,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,5,rabbit,gold]],(3,0), [Xpion1,Ypion1,Type,gold]).
 	
 meilleur_score([], 0).
 meilleur_score([T|Q], Res):- retractall(actionMaxScore(_)), asserta(actionMaxScore(T)), choix_meilleur_action(Q), actionMaxScore([Res|_]), !.
 	
 
+meilleur_score([],[],[],0,0):- !.
 meilleur_score([Sc1|_], [], [], 1, Sc1):- !.
 meilleur_score([], [Sc2|[_]], [], 2, Sc2):- !.
 meilleur_score([], [], [Sc3|[_]], 2, Sc3):- !.
@@ -672,7 +739,8 @@ pion_pousser_possibleG_silver(_,_,[]).
 %pion_pousser_possible_silver([[4,4,cat,silver],[3,4,dog,gold],[5,4,rabbit,gold],[4,3,rabbit,gold],[4,5,rabbit,gold]],[4,4,cat,silver],X).
 %pion_pousser_possible_silver([[4,4,cat,silver]],[4,4,cat,silver],X).
 
-
+%pion_pousser_possible_silver([[2,2,rabbit,silver],[2,6,rabbit,silver],[3,2,rabbit,silver],[3,4,elephant,silver],[3,6,rabbit,silver],[3,7,cat,silver],[4,1,rabbit,silver],[4,3,rabbit,silver],[4,4,rabbit,silver],[4,5,rabbit,silver],[4,6,cat,silver],[4,7,dog,silver],[5,0,horse,silver],[5,1,camel,silver],[6,2,horse,silver],[5,3,dog,silver],[6,0,rabbit,gold],[6,1,camel,gold],[6,3,rabbit,gold],[6,5,rabbit,gold],[7,0,horse,gold],[7,1,rabbit,gold],[7,2,horse,gold],[7,3,elephant,gold],[7,5,cat,gold],[7,6,dog,gold],[7,7,dog,gold]],[6,2,horse,silver], Res).
+%pion_freeze([[2,2,rabbit,silver],[2,6,rabbit,silver],[3,2,rabbit,silver],[3,4,elephant,silver],[3,6,rabbit,silver],[3,7,cat,silver],[4,1,rabbit,silver],[4,3,rabbit,silver],[4,4,rabbit,silver],[4,5,rabbit,silver],[4,6,cat,silver],[4,7,dog,silver],[5,0,horse,silver],[5,1,camel,silver],[6,2,horse,silver],[5,3,dog,silver],[6,0,rabbit,gold],[6,1,camel,gold],[6,3,rabbit,gold],[6,5,rabbit,gold],[7,0,horse,gold],[7,1,rabbit,gold],[7,2,horse,gold],[7,3,elephant,gold],[7,5,cat,gold],[7,6,dog,gold],[7,7,dog,gold]],[6,2,horse,silver]).
 
 %pousser_possible_silver(Board, PousserEnnemi) -> PousserEnnemi de la forme : [[[[XennemiDepart,YennemiDepart],[XennemiArrive,YennemiArrive]]],[[XallieDepart,YallieDepart],[XallieArrive,YallieArrive]]]
 %Comme pour deplacement_possible, permet de tester si un pion allie peut pousser un pion ennemi (déterminé).
