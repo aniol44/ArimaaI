@@ -23,6 +23,10 @@
 
 %get_moves(Moves, Gamestate, Board):- 
 
+%à faire: 	- rajouter tests basiques
+%			- faire profondeur sur les prochains nouveaux coups (en test ?)
+%			- implémenter stratégies générales.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %					REMARQUE (POUR DEBUG):													%
 % 			Pour afficher toute la solution d unification									%
