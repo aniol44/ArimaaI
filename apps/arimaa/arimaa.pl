@@ -160,8 +160,8 @@ action_tour_silver(Board, Gamestate, Act, Consom, Res):-
 	tout_deplacement_possible_silver(Board, Board, ResDep),
 	% write('BOARD:'),
 	% write(Board),
- % write('DEPLACEMENT:'),
- % write(ResDep),
+ write('DEPLACEMENT:'),
+ write(ResDep),
 	ActDep is Act-1,
 	ActPou is Act-2,
 	score_tout_deplacement_silver(Board, Gamestate, ResDep, ResDepScore, ActDep), 
@@ -744,6 +744,7 @@ pion_freeze(Board, [X,Y,TypeAllie,gold]):- voisins(Board, (X,Y), Res), element([
 %pion_freeze([[1,2,rabbit,silver],[1,7,cat,silver],[2,2,rabbit,silver],[2,3,rabbit,silver],[2,6,rabbit,silver],[2,7,dog,silver],[3,0,horse,silver],[5,0,rabbit,silver],[3,2,horse,silver],[3,3,dog,silver],[3,4,elephant,silver],[3,5,rabbit,silver],[3,6,rabbit,silver],[4,4,rabbit,silver],[4,6,cat,silver],[5,1,camel,silver],[6,0,rabbit,gold],[6,1,camel,gold],[6,4,rabbit,gold],[6,5,rabbit,gold],[7,0,horse,gold],[7,1,rabbit,gold],[7,2,horse,gold],[7,4,elephant,gold],[7,5,cat,gold],[7,6,dog,gold],[7,7,dog,gold]],[5,0,rabbit,silver]).
 %voisins([[1,2,rabbit,silver],[1,7,cat,silver],[2,2,rabbit,silver],[2,3,rabbit,silver],[2,6,rabbit,silver],[2,7,dog,silver],[3,0,horse,silver],[5,0,rabbit,silver],[3,2,horse,silver],[3,3,dog,silver],[3,4,elephant,silver],[3,5,rabbit,silver],[3,6,rabbit,silver],[4,4,rabbit,silver],[4,6,cat,silver],[5,1,camel,silver],[6,0,rabbit,gold],[6,1,camel,gold],[6,4,rabbit,gold],[6,5,rabbit,gold],[7,0,horse,gold],[7,1,rabbit,gold],[7,2,horse,gold],[7,4,elephant,gold],[7,5,cat,gold],[7,6,dog,gold],[7,7,dog,gold]],(5,0),Res).
 
+%pion_freeze([[0,1,dog,silver],[0,2,horse,silver],[0,4,horse,silver],[0,5,rabbit,silver],[0,7,camel,silver],[1,3,rabbit,silver],[1,5,rabbit,silver],[1,7,rabbit,silver],[2,0,rabbit,silver],[2,1,rabbit,silver],[2,4,rabbit,silver],[3,0,rabbit,silver],[3,2,camel,gold],[4,2,cat,silver],[4,6,elephant,silver],[5,1,rabbit,gold],[5,6,dog,gold],[6,0,rabbit,gold],[6,2,rabbit,gold],[6,4,cat,gold],[6,5,horse,gold],[7,0,rabbit,gold],[7,1,dog,gold],[7,2,rabbit,gold],[7,5,elephant,gold]], [4,2,cat,silver] ).
 
 
 %tout_deplacement_possible_silver(Board, TempBoard, Res) --> Res s unifie avec une liste de tous les deplacements possibles du joueur silver avec une profondeur de 1.
@@ -752,12 +753,13 @@ pion_freeze(Board, [X,Y,TypeAllie,gold]):- voisins(Board, (X,Y), Res), element([
 %Board corresponds au plateau et ne sera pas modifié, TempBoard est une copie de Board qui permet un parcours un à un de chaque pion du plateau.
 
 tout_deplacement_possible_silver(_, [], []).
-tout_deplacement_possible_silver(Board, [[X,Y,_,silver]|B], Res):- setof([[X,Y],[V,W]],deplacement_possible_silver(Board, [[X,Y],[V,W]]), TmpRes), tout_deplacement_possible_silver(Board,B,TRes), concat(TmpRes,TRes,Res), !.
+tout_deplacement_possible_silver(Board, [[X,Y,Type,silver]|B], Res):- pion_deplacement_possible_silver(Board, [X,Y,Type,silver], TmpRes), tout_deplacement_possible_silver(Board,B,TRes), concat(TmpRes,TRes,Res), !.
 tout_deplacement_possible_silver(Board, [[_,_,_,_]|B], Res):- tout_deplacement_possible_silver(Board, B, Res). 
 
 %EXEMPLE EXECUTION :
 %tout_deplacement_possible_silver([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]], [[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],Res).
 
+%tout_deplacement_possible_silver([[0,1,dog,silver],[0,2,horse,silver],[0,4,horse,silver],[0,5,rabbit,silver],[0,7,camel,silver],[1,3,rabbit,silver],[1,5,rabbit,silver],[1,7,rabbit,silver],[2,0,rabbit,silver],[2,1,rabbit,silver],[2,4,rabbit,silver],[3,0,rabbit,silver],[3,2,camel,gold],[4,2,cat,silver],[4,6,elephant,silver],[5,1,rabbit,gold],[5,6,dog,gold],[6,0,rabbit,gold],[6,2,rabbit,gold],[6,4,cat,gold],[6,5,horse,gold],[7,0,rabbit,gold],[7,1,dog,gold],[7,2,rabbit,gold],[7,5,elephant,gold]], [[0,1,dog,silver],[0,2,horse,silver],[0,4,horse,silver],[0,5,rabbit,silver],[0,7,camel,silver],[1,3,rabbit,silver],[1,5,rabbit,silver],[1,7,rabbit,silver],[2,0,rabbit,silver],[2,1,rabbit,silver],[2,4,rabbit,silver],[3,0,rabbit,silver],[3,2,camel,gold],[4,2,cat,silver],[4,6,elephant,silver],[5,1,rabbit,gold],[5,6,dog,gold],[6,0,rabbit,gold],[6,2,rabbit,gold],[6,4,cat,gold],[6,5,horse,gold],[7,0,rabbit,gold],[7,1,dog,gold],[7,2,rabbit,gold],[7,5,elephant,gold]], Res).
 
 %pion_deplacement_possible_silver(_silverBoard, Pion, Resultat)--> pour un pion donné unifie Resultat avec tous ses deplacements possibles.
 pion_deplacement_possible_silver(Board, [Xdepart,Ydepart,TypeAllie,silver], Res):- \+ pion_freeze(Board, [Xdepart,Ydepart,TypeAllie,silver]), setof([[Xdepart,Ydepart],[Xarrive,Yarrive]], deplacement_possible_silver(Board,[[Xdepart,Ydepart],[Xarrive,Yarrive]]), Res).
@@ -769,6 +771,7 @@ pion_deplacement_possible_silver(Board, [Xdepart,Ydepart,TypeAllie,silver], Res)
 %pion_deplacement_possible_silver([[4,7,cat,silver],[5,7,cat,gold]],[4,7,cat,silver], Res ).
 
 %pion_deplacement_possible_silver([[1,2,rabbit,silver],[1,7,cat,silver],[2,2,rabbit,silver],[2,3,rabbit,silver],[2,6,rabbit,silver],[2,7,dog,silver],[3,0,horse,silver],[5,0,rabbit,silver],[3,2,horse,silver],[3,3,dog,silver],[3,4,elephant,silver],[3,5,rabbit,silver],[3,6,rabbit,silver],[4,4,rabbit,silver],[4,6,cat,silver],[5,1,camel,silver],[6,0,rabbit,gold],[6,1,camel,gold],[6,4,rabbit,gold],[6,5,rabbit,gold],[7,0,horse,gold],[7,1,rabbit,gold],[7,2,horse,gold],[7,4,elephant,gold],[7,5,cat,gold],[7,6,dog,gold],[7,7,dog,gold]],[5,0,rabbit,silver], Res).
+
 
 %deplacement_possible_silver(Board, Deplacement ) --> renvoie vrai si le deplacement du pion d une case à une autre case voisine (précisée) est possible sinon renvoie faux (la profondeur du deplacement est de 1 case).
 %Pour l instant pas de cut (!), Peut renvoyer tout les déplacements par exemple on appel sur deplacement(Board, [[5,5], [X,Y]]. A voir après avec l utilisation de Setof (+ retract et asserta).
