@@ -118,18 +118,19 @@ element(X, [_|Q]):- element(X,Q).
 
 get_moves(Moves, Gamestate, Board):- create_strategie(Board, Gamestate), recup_meilleurs_coups(Board, Gamestate, 4, 0, Moves).
 
+
 %get_moves(Moves, [silver, []],[[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]]).
 %get_moves(Moves, [silver, []],[[0,0,rabbit,silver]]).
 
 %get_moves(Moves,[silver, []], [[4,6,rabbit,silver]] ).
 
-create_strategie(Board, _):- strategie_defense(Board, Board, Val), Val > 5,  retractall(strategie(_)), asserta(strategie(1)), !.
+create_strategie(Board, _):- strategie_defense(Board, Board, Val), Val > 4,  retractall(strategie(_)), asserta(strategie(1)), !.
 create_strategie(Board, Gamestate):- retractall(strategie(_)), asserta(strategie(0)).
 
-strategie_defense([], 0).
-strategie_defense(Board, [T|Q], Val):- lapin_dangereux(Board, T, R), strategie_defense(Q, Rtemp), Val is R + Rtemp. 
+strategie_defense(_, [], 0).
+strategie_defense(Board, [T|Q], Val):- lapin_dangereux(Board, T, R), strategie_defense(Board, Q, Rtemp), Val is R + Rtemp. 
 
-lapin_dangereux(Board, [X,Y,rabbit,gold], R);- \+pion_freeze(Board, [X,Y,rabbit,gold]), X < 4, R is 7 - X.
+lapin_dangereux(Board, [X,Y,rabbit,gold], R):- \+pion_freeze(Board, [X,Y,rabbit,gold]), X < 4, R is 7 - X.
 lapin_dangereux(_,_, 0).
 
  
@@ -149,7 +150,7 @@ recup_meilleurs_coups(Board, Gamestate, I, K, Res) :-
 	concat(TmpRes, TRes, Res), !.
 
 	
-recup_meilleurs_coups(_,_,I,K, []):- I = K. 
+recup_meilleurs_coups(_,_,I,K, []):- I =< K. 
 
 %recup_meilleurs_coups([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],[silver, []],4,0,Res).
 %recup_meilleurs_coups([[0,0,rabbit,silver]], [silver, []], 4, 0, Res).
@@ -160,11 +161,11 @@ action_tour_silver(Board, Gamestate, Act, Consom, Res):-
 	tout_deplacement_possible_silver(Board, Board, ResDep),
 	% write('BOARD:'),
 	% write(Board),
- write('DEPLACEMENT:'),
- write(ResDep),
+ % write('DEPLACEMENT:'),
+ % write(ResDep),
 	ActDep is Act-1,
 	ActPou is Act-2,
-	score_tout_deplacement_silver(Board, Gamestate, ResDep, ResDepScore, ActDep), 
+	score_tout_deplacement_silver(Board, Gamestate, ResDep, ResDepScore, ActDep),	
   % write('DepScore'),
   % write(ResDepScore),
 	tout_pousser_possible_silver(Board, Board, ResPou), 
@@ -178,8 +179,9 @@ action_tour_silver(Board, Gamestate, Act, Consom, Res):-
  % write(ResTir),	
 	score_tout_tirer_silver(Board, Gamestate, ResTir, ResTirScore, ActPou), 
  % write('TirScore:'),
- % write(ResTirScore),	
-	meilleur_action(ResDepScore, Res1),
+ % write(ResTirScore),
+	score_passer_son_tour(Act, ResDepScore, ResDepPassScore),
+	meilleur_action(ResDepPassScore, Res1),
  % write(Res1),
 	meilleur_action(ResPouScore, Res2),
  % write(Res2),
@@ -195,9 +197,10 @@ action_tour_silver(Board, Gamestate, 1, 1, Res):-
 	% write('DEPLACEMENT:'),
 	% write(ResDep),
 	score_tout_deplacement_silver(Board, Gamestate, ResDep, ResDepScore, 0), 
+	score_passer_son_tour(1, ResDepScore, ResDepPassScore),
 	% write('DepScore'),
 	% write(ResDepScore),
-	meilleur_action(ResDepScore, [_|Res]).
+	meilleur_action(ResDepPassScore, [_|Res]).
 
 %action_tour_silver([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],[silver,[]], 4, Consom, Res). 
 %action_tour_silver([[0,0,rabbit,silver]], [silver, []], 4, Consom, Res).
@@ -210,7 +213,7 @@ action_tour_silver(Board, Gamestate, 1, 1, Res):-
 score_tout_deplacement_silver(_, _, [], [], _):- !.
 score_tout_deplacement_silver(Board, Gamestate, [T|Q], ResDepScore, Act):- score_deplacement_silver(Board, Gamestate, T, ResScore, Act), score_tout_deplacement_silver(Board, Gamestate, Q, TmpRes, Act), concat([[ResScore|[T]]], TmpRes, ResDepScore).
 
-%score_tout_deplacement_silver([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]], [silver, []], [[[1, 0], [2, 0]], [[1, 1], [2, 1]], [[1, 2], [2, 2]], [[1, 3], [2, 3]], [[1, 4], [2, 4]], [[1, 5], [2, 5]], [[1, 6], [2, 6]]], ResDepScore).
+%score_tout_deplacement_silver([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]], [silver, []], [[[1, 0], [2, 0]], [[1, 1], [2, 1]], [[1, 2], [2, 2]], [[1, 3], [2, 3]], [[1, 4], [2, 4]], [[1, 5], [2, 5]], [[1, 6], [2, 6]]], ResDepScore, 3).
 %tout_deplacement_possible_silver([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]], [[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]],Res).
 
 %score_tout_deplacement_silver([[[1,2],[0,2]],[[0,3],[0,2]],[[0,5],[-1,5]],[[0,6],[-1,6]],[[0,7],[0,8]],[[3,2],[2,2]],[[1,5],[2,5]],[[1,6],[2,6]],[[1,7],[1,8]],[[2,0],[2,-1]],[[2,1],[2,2]],[[3,0],[3,-1]],[[3,1],[4,1]]],)
@@ -226,6 +229,8 @@ score_tout_tirer_silver(Board, Gamestate, [T|Q], ResDepScore, Act):- score_tirer
 
 %score_tout_tirer_silver([[0,0,rabbit,silver],[0,1,rabbit,silver],[0,2,horse,silver],[0,3,rabbit,silver],[0,4,elephant,silver],[0,5,rabbit,silver],[0,6,rabbit,silver],[0,7,rabbit,silver],[1,0,camel,silver],[1,1,cat,silver],[1,2,rabbit,silver],[1,3,dog,silver],[1,4,rabbit,silver],[1,5,horse,silver],[1,6,dog,silver],[1,7,cat,silver],[2,7,rabbit,gold],[6,0,cat,gold],[6,1,horse,gold],[6,2,camel,gold],[6,3,elephant,gold],[6,4,rabbit,gold],[6,5,dog,gold],[6,6,rabbit,gold],[7,0,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,3,cat,gold],[7,4,dog,gold],[7,5,rabbit,gold],[7,6,horse,gold],[7,7,rabbit,gold]], [silver, []],  [[[[3, 7], [3, 6]], [[2, 7], [3, 7]]], [[[3, 7], [4, 7]], [[2, 7], [3, 7]]]], ResDepScore).
 
+score_passer_son_tour(4, ResDepScore, ResDepScore).
+score_passer_son_tour(Act, ResDepScore, [[0] | ResDepScore]):- Act < 4.
 
 
 score_deplacement_silver(Board, Gamestate, Deplacement, ScoreDep, Act):- creation_score(0), cycle_test_deplacement_silver(Board,Gamestate, Deplacement, Act), score(ScoreDep).
@@ -246,15 +251,19 @@ choix_meilleur_action([[Score|_]|Q]):- actionMaxScore([A|_]), Score =< A, choix_
 %meilleur_action([[0,[[3,2],[4,2]]],[-9,[[6,2],[6,3]]],[59,[[6,2],[7,2]]],[23,[[5,2],[6,2]]]], Res).
 %meilleur_action([[0,[[1,2],[0,2]]],[0,[[1,2],[1,1]]],[0,[[0,3],[0,2]]],[5,[[2,2],[3,2]]],[-95,[[1,5],[2,5]]],[5,[[1,6],[2,6]]],[5,[[1,7],[2,7]]],[0,[[3,1],[3,2]]],[5,[[3,1],[4,1]]]],Res).
 
+meilleur_action([_|[]], [], [], 4, []):- !.
 meilleur_action([_|A1], [], [], 1, A1):- !.
 meilleur_action([], [_|[A2]], [], 2, A2):- !.
 meilleur_action([], [], [_|[A3]], 2, A3):- !.
+meilleur_action([Sc1|[]], [], [Sc3|[_]], 4, []):- Sc1 >= Sc3, !.
 meilleur_action([Sc1|A1], [], [Sc3|[_]], 1, A1):- Sc1 >= Sc3, !.
 meilleur_action([Sc1|_], [Sc2|[A2]], [], 2, A2):- Sc2 >= Sc1, !.
+meilleur_action([Sc1|[]], [Sc2|[_]], [], 4, []):- Sc1 >= Sc2, !.
 meilleur_action([Sc1|A1], [Sc2|[_]], [], 1, A1):- Sc1 >= Sc2, !.
 meilleur_action([], [Sc2|_], [Sc3|[A3]], 2, A3):- Sc3 >= Sc2, !.
 meilleur_action([Sc1|_], [], [Sc3|[A3]], 2, A3):- Sc3 >= Sc1, !.
 meilleur_action([], [Sc2|[A2]], [Sc3|_], 2, A2):- Sc2 >= Sc3, !.
+meilleur_action([Sc1|[]], [Sc2|[_]], [Sc3|[_]], 4, []):- Sc1 >= Sc2, Sc1 >= Sc3, !.
 meilleur_action([Sc1|A1], [Sc2|[_]], [Sc3|[_]], 1, A1):- Sc1 >= Sc2, Sc1 >= Sc3, !.
 meilleur_action([Sc1|_], [Sc2|[A2]], [Sc3|[_]], 2, A2):- Sc2 >= Sc1, Sc2 >= Sc3, !.
 meilleur_action([Sc1|_], [Sc2|[_]], [Sc3|[A3]], 2, A3):- Sc3 >= Sc2, Sc3 >= Sc1.
