@@ -433,7 +433,8 @@ test_defreeze_ennemi(_,_,_,_).
 %											%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
 
-test_actions_suivantes(NvBoard,NvGamestate,NvPion,AnciennesPos,Act):- test_action_suivante(NvBoard,NvGamestate,NvPion,AnciennesPos,Act,Res), addition_score(Res).
+test_actions_suivantes(NvBoard,NvGamestate,NvPion,AnciennesPos,Act):- test_action_suivante(NvBoard,NvGamestate,NvPion,AnciennesPos,Act,Res), Res >= 0, addition_score(Res).
+test_actions_suivantes(_,_,_,_,_). %ce test ne peut pas diminuer le score car dans tous les cas, on peut passer son tour.
 
 %test_actions_suivantes([[1,2,rabbit,silver],[1,7,cat,silver],[2,2,rabbit,silver],[2,3,rabbit,silver],[2,6,rabbit,silver],[2,7,dog,silver],[3,0,horse,silver],[4,1,rabbit,silver],[3,2,horse,silver],[3,3,dog,silver],[3,4,elephant,silver],[3,5,rabbit,silver],[3,6,rabbit,silver],[4,4,rabbit,silver],[4,6,cat,silver],[5,1,camel,silver],[6,0,rabbit,gold],[6,1,camel,gold],[6,4,rabbit,gold],[6,5,rabbit,gold],[7,0,horse,gold],[7,1,rabbit,gold],[7,2,horse,gold],[7,4,elephant,gold],[7,5,cat,gold],[7,6,dog,gold],[7,7,dog,gold]],[silver,[[rabbit,gold],[rabbit,gold],[rabbit,gold],[rabbit,gold],[cat,gold]]],[4,1,rabbit,silver]).
 %test_action_suivante([[1,2,rabbit,silver],[1,7,cat,silver],[2,2,rabbit,silver],[2,3,rabbit,silver],[2,6,rabbit,silver],[2,7,dog,silver],[3,0,horse,silver],[4,1,rabbit,silver],[3,2,horse,silver],[3,3,dog,silver],[3,4,elephant,silver],[3,5,rabbit,silver],[3,6,rabbit,silver],[4,4,rabbit,silver],[4,6,cat,silver],[5,1,camel,silver],[6,0,rabbit,gold],[6,1,camel,gold],[6,4,rabbit,gold],[6,5,rabbit,gold],[7,0,horse,gold],[7,1,rabbit,gold],[7,2,horse,gold],[7,4,elephant,gold],[7,5,cat,gold],[7,6,dog,gold],[7,7,dog,gold]],[silver,[[rabbit,gold],[rabbit,gold],[rabbit,gold],[rabbit,gold],[cat,gold]]],[4,1,rabbit,silver],3, Res).
