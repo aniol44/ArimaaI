@@ -295,10 +295,12 @@ cycle_test_deplacement_silver(Board, Gamestate, [[Xdepart,Ydepart], [Xarrive,Yar
 	test_freeze(NvBoard, NvPion, Strat),
 	test_freeze_ennemi(Board,NvBoard,NvPion, Strat),
 	test_defreeze_ennemi(Board,NvBoard,Pion, Strat),
+	test_blocage_lapin(NvBoard,NvPion, Strat),
+	test_deblocage_lapin(Board, Pion, Strat),
 	% write('a '),
 	% write('REST'),
 	% write(Act),
-	score(S),
+	% score(S),
 	% write('ScoreAvant:'),
 	% write(S),
 	% write(' '),
@@ -403,7 +405,19 @@ test_defreeze_ennemi(Board,NvBoard,[X,Y,_,_],1):- Ytemp is Y + 1, get_case(Board
 test_defreeze_ennemi(Board,NvBoard,[X,Y,_,_],1):- Ytemp is Y - 1, get_case(Board, (X,Ytemp), [Xpion1,Ypion1,Type,gold]), pion_freeze(Board,[Xpion1,Ypion1,Type,gold]), \+pion_freeze(NvBoard,[Xpion1,Ypion1,Type,gold]), soustraction_score(10).
 
 test_defreeze_ennemi(_,_,_,_).
-	
+
+
+test_blocage_lapin(Board, [X,Y,_,_], 1):- voisinB(Board, (X,Y), [Xennemi,_,rabbit,gold]), Xennemi < 4, addition_score(15).
+test_blocage_lapin(Board, [X,Y,_,_], 1):- voisinG(Board, (X,Y), [Xennemi,_,rabbit,gold]), Xennemi < 4, addition_score(8).
+test_blocage_lapin(Board, [X,Y,_,_], 1):- voisinD(Board, (X,Y), [Xennemi,_,rabbit,gold]), Xennemi < 4, addition_score(8).
+test_blocage_lapin(_, _, _).
+
+test_deblocage_lapin(Board, [X,Y,_,_], 1):- voisinB(Board, (X,Y), [Xennemi,_,rabbit,gold]), Xennemi < 4, soustraction_score(15).
+test_deblocage_lapin(Board, [X,Y,_,_], 1):- voisinG(Board, (X,Y), [Xennemi,_,rabbit,gold]), Xennemi < 4, soustraction_score(8).
+test_deblocage_lapin(Board, [X,Y,_,_], 1):- voisinD(Board, (X,Y), [Xennemi,_,rabbit,gold]), Xennemi < 4, soustraction_score(8).
+test_deblocage_lapin(_, _, _).
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
 % test consequences d'actions
 %
@@ -520,6 +534,8 @@ profond_cycle_test_deplacement_silver(Board, Gamestate, AnciennesPos, [[Xdepart,
 	test_freeze(NvBoard, NvPion, Strat, Res4),
 	test_freeze_ennemi(Board,NvBoard,NvPion, Strat, Res5),
 	test_defreeze_ennemi(Board,NvBoard, Pion, Strat, Res6),
+	test_blocage_lapin(NvBoard, NvPion, Strat, Res9),
+	test_deblocage_lapin(Board, Pion, Strat, Res10),
 	test_deplacement_redondant(AnciennesPos, [Xarrive,Yarrive], Res8),
 	test_action_suivante(NvBoard,NvGamestate,NvPion, [[Xdepart,Ydepart]|AnciennesPos], Act, Res7),
 	% write('D:'),
@@ -545,7 +561,7 @@ profond_cycle_test_deplacement_silver(Board, Gamestate, AnciennesPos, [[Xdepart,
 	% write(' '),
 	% write(Res7),
 	% write(' '),
-	Score is Res1 + Res2 + Res3 + Res4 + Res5 + Res6 + Res7 + Res8.
+	Score is Res1 + Res2 + Res3 + Res4 + Res5 + Res6 + Res7 + Res8 + Res9 + Res10.
 
 	
 profond_cycle_test_pousser_silver(Board, Gamestate, AnciennesPos, [[[XDennemi, YDennemi], [XAennemi, YAennemi]], [[XDallie, YDallie], [XDennemi, YDennemi]]], Act, Score):-
@@ -629,6 +645,16 @@ test_defreeze_ennemi(Board,NvBoard,[X,Y,_,_], 1, -10):- Ytemp is Y + 1, get_case
 test_defreeze_ennemi(Board,NvBoard,[X,Y,_,_], 1, -10):- Ytemp is Y - 1, get_case(Board, (X,Ytemp), [Xpion1,Ypion1,Type,gold]), pion_freeze(Board,[Xpion1,Ypion1,Type,gold]), \+pion_freeze(NvBoard,[Xpion1,Ypion1,Type,gold]).
 
 test_defreeze_ennemi(_,_,_,_,0).
+
+test_blocage_lapin(Board, [X,Y,_,_], 1, 15):- voisinB(Board, (X,Y), [Xennemi,_,rabbit,gold]), Xennemi < 4 .
+test_blocage_lapin(Board, [X,Y,_,_], 1, 8):- voisinG(Board, (X,Y), [Xennemi,_,rabbit,gold]),  Xennemi < 4 .
+test_blocage_lapin(Board, [X,Y,_,_], 1, 8):- voisinD(Board, (X,Y), [Xennemi,_,rabbit,gold]),  Xennemi < 4 .
+test_blocage_lapin(_, _, _, 0).
+
+test_deblocage_lapin(Board, [X,Y,_,_], 1, -15):- voisinB(Board, (X,Y), [Xennemi,_,rabbit,gold]), Xennemi < 4 .
+test_deblocage_lapin(Board, [X,Y,_,_], 1, -8):- voisinG(Board, (X,Y), [Xennemi,_,rabbit,gold]),  Xennemi < 4 .
+test_deblocage_lapin(Board, [X,Y,_,_], 1, -8):- voisinD(Board, (X,Y), [Xennemi,_,rabbit,gold]),  Xennemi < 4 .
+test_deblocage_lapin(_, _, _, 0).
 	
 %test_defreeze_ennemi([[0,1,rabbit,silver],[0,2,rabbit,silver],[0,5,horse,silver],[0,6,horse,silver],[0,7,rabbit,silver],[1,2,rabbit,silver],[1,3,rabbit,silver],[1,5,cat,silver],[1,6,rabbit,silver],[2,7,rabbit,silver],[3,0,cat,gold],[3,1,dog,silver],[3,4,rabbit,silver],[3,5,elephant,silver],[4,2,dog,silver],[4,4,elephant,gold],[6,4,rabbit,gold],[6,6,horse,gold],[6,7,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,5,rabbit,gold]], [[0, 1, rabbit, silver], [0, 2, rabbit, silver], [0, 5, horse, silver], [0, 6, horse, silver], [0, 7, rabbit, silver], [1, 2, rabbit, silver], [1, 3, rabbit, silver], [1, 5, cat, silver], [1, 6, rabbit, silver], [2, 7, rabbit, silver], [3, 0, cat, gold], [2, 1, dog, silver], [3, 4, rabbit, silver], [3, 5, elephant, silver], [4, 2, dog, silver], [4, 4, elephant, gold], [6, 4, rabbit, gold], [6, 6, horse, gold], [6, 7, rabbit, gold], [7, 1, rabbit, gold], [7, 2, rabbit, gold], [7, 5, rabbit, gold]],[2, 1, dog, silver], Res).
 %get_case([[0,1,rabbit,silver],[0,2,rabbit,silver],[0,5,horse,silver],[0,6,horse,silver],[0,7,rabbit,silver],[1,2,rabbit,silver],[1,3,rabbit,silver],[1,5,cat,silver],[1,6,rabbit,silver],[2,7,rabbit,silver],[3,0,cat,gold],[3,1,dog,silver],[3,4,rabbit,silver],[3,5,elephant,silver],[4,2,dog,silver],[4,4,elephant,gold],[6,4,rabbit,gold],[6,6,horse,gold],[6,7,rabbit,gold],[7,1,rabbit,gold],[7,2,rabbit,gold],[7,5,rabbit,gold]],(3,0), [Xpion1,Ypion1,Type,gold]).
